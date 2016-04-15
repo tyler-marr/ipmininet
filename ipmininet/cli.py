@@ -1,3 +1,4 @@
+"""An enhanced CLI providing IP-related commands"""
 from mininet.cli import CLI
 from mininet.log import lg
 

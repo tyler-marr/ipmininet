@@ -1,16 +1,18 @@
-"""This module defines a data-store to help dealing wtih all (possibly)
+"""This module defines a data-store to help dealing with all (possibly)
 auto-allocated properties of a topology: ip addresses, router ids, ..."""
 import json
 from ipaddress import ip_interface
 
-from ipmininet import otherIntf, realIntfList
+from .utils import otherIntf, realIntfList
 
 from mininet.log import lg
 
 
 class TopologyDB(object):
     """A convenience store for auto-allocated mininet properties.
-    This is *NOT* to be used as IGP graph"""
+    This is *NOT* to be used as IGP graph as it does not reflect the actual
+    availability of a node in the network (as-in it is a static view of
+    the network)."""
     def __init__(self, db=None, net=None, *args, **kwargs):
         """Either extract properties from a network or load a save file
 

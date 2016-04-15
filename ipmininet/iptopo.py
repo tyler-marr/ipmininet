@@ -1,7 +1,8 @@
 """This module defines topology class that supports adding L3 routers"""
-import ipmininet
-
 from mininet.topo import Topo
+
+# TODO add high-level primitives to group links/nodes by IGP areas,
+# BGP AS, ... instead of having to do it on a per-link basis.
 
 
 class IPTopo(Topo):

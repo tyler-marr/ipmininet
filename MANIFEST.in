@@ -1,1 +1,1 @@
-recursive-include fibbingnode/res *
+recursive-include ipmininet/router/config/templates *
