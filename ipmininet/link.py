@@ -210,8 +210,8 @@ def _parse_addresses(out):
     mac = None
     v4 = []
     v6 = []
-    for line in out.split('\n'):
-        parts = line.strip(' \n\t').split(' ')
+    for line in out.strip(' \n\t\r').split('\n'):
+        parts = line.strip(' \n\t\r').split(' ')
         try:
             t = parts[0]
             if t == 'inet':
