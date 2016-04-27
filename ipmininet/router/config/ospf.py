@@ -5,6 +5,37 @@ from .zebra import QuaggaDaemon, Zebra
 from .utils import ConfigDict
 from ipmininet.utils import otherIntf, L3Router, realIntfList
 from ipmininet.link import address_comparator
+from ipmininet.iptopo import Overlay
+
+
+class OSPFArea(Overlay):
+    """An overlay to group OSPF links and routers by area"""
+
+    def __init__(self, area, routers=(), links=(), **props):
+        """:param area: the area for this overlay
+        :param routers: the set of routers for which all their interfaces
+                        belong to that area
+        :param links: individual links belonging to this area"""
+        super(OSPFArea, self).__init__(nodes=routers, links=links,
+                                       nprops=props)
+        self.area = area
+
+    @property
+    def area(self):
+        return self.link_properties['igp_area']
+
+    @area.setter
+    def area(self, x):
+        self.link_properties['igp_area'] = x
+
+    def apply(self, topo):
+        # Add all links for the routers
+        for r in self.nodes:
+            self.add_link(*topo.g[r])
+        super(OSPFArea, self).apply(topo)
+
+    def __str__(self):
+        return '<OSPF area %s>' % self.area
 
 
 class OSPF(QuaggaDaemon):

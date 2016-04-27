@@ -103,10 +103,6 @@ class RouterConfig(object):
     def daemons(self):
         return sorted(self._daemons.itervalues(), key=attrgetter('PRIO'))
 
-    def has_started(self):
-        """Return whether this daemon has started or not"""
-        return True
-
 
 class Daemon(object):
     """This class serves as base for routing daemons"""
@@ -223,6 +219,10 @@ class Daemon(object):
     @abc.abstractmethod
     def set_defaults(self, defaults):
         """Update defaults to contain the defaults specific to this daemon"""
+
+    def has_started(self):
+        """Return whether this daemon has started or not"""
+        return True
 
 
 class BasicRouterConfig(RouterConfig):

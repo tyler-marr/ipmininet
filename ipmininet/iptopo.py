@@ -8,8 +8,8 @@ class IPTopo(Topo):
     """A topology that supports L3 routers"""
 
     def __init__(self, *args, **kwargs):
-        super(IPTopo, self).__init__(*args, **kwargs)
         self.overlays = {}
+        super(IPTopo, self).__init__(*args, **kwargs)
 
     def build(self, *args, **kwargs):
         for o in self.overlays.itervalues():
