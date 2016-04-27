@@ -51,7 +51,6 @@ class OSPF(QuaggaDaemon):
     def build(self):
         cfg = super(OSPF, self).build()
         cfg.redistribute = self.options.redistribute
-        cfg.debug = self.options.debug
         cfg.router_id = self.routerid
         interfaces = [itf
                       for itf in realIntfList(self._node)]

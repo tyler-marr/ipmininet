@@ -30,6 +30,11 @@ class QuaggaDaemon(Daemon):
         return os.path.join(self._node.cwd,
                             '%s_%s.api' % ('quagga', self._node.name))
 
+    def build(self):
+        cfg = super(QuaggaDaemon, self).build()
+        cfg.debug = self.options.debug
+        return cfg
+
     def set_defaults(self, defaults):
         """:param debug: th set of debug events that should be logged"""
         defaults.debug = ()
