@@ -28,11 +28,9 @@ router ospf
   % for r in node.ospfd.redistribute:
   redistribute ${r.subtype} metric-type ${r.metric_type} metric ${r.metric}
   % endfor
-
   % for net in node.ospfd.networks:
   network ${net.domain.with_prefixlen} area ${net.area}
   % endfor
-
   % for itf in node.ospfd.interfaces:
       % if itf.passive or not itf.active:
   passive-interface ${itf.name}

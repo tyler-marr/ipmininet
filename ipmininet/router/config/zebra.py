@@ -9,25 +9,46 @@ DENY = 'deny'
 PERMIT = 'permit'
 
 
-class Zebra(Daemon):
-    NAME = 'zebra'
-    PRIO = 0
+class QuaggaDaemon(Daemon):
+    """The base class for all Quagga-derived daemons"""
 
-    def __init__(self, *args, **kwargs):
-        super(Zebra, self).__init__(*args, **kwargs)
+    # Additional parameters to pass when starting the daemon
+    STARTUP_LINE_EXTRA = ''
 
     @property
     def startup_line(self):
-        return '{name} -f {cfg} -i {pid} -z {api} -k'\
+        return '{name} -f {cfg} -i {pid} -z {api} -u root {extra}'\
                 .format(name=self.NAME,
                         cfg=self.cfg_filename,
                         pid=self._file('pid'),
-                        api=self.zebra_socket(self._node))
+                        api=self.zebra_socket,
+                        extra=self.STARTUP_LINE_EXTRA)
 
-    @staticmethod
-    def zebra_socket(node):
+    @property
+    def zebra_socket(self):
         """Return the path towards the zebra API socket for the given node"""
-        return os.path.join(node.cwd, '%s_%s.api' % (Zebra.NAME, node.name))
+        return os.path.join(self._node.cwd,
+                            '%s_%s.api' % ('quagga', self._node.name))
+
+    def set_defaults(self, defaults):
+        """:param debug: th set of debug events that should be logged"""
+        defaults.debug = ()
+
+    @property
+    def dry_run(self):
+        return '{name} -Cf {cfg} -u root'\
+               .format(name=self.NAME,
+                       cfg=self.cfg_filename)
+
+
+class Zebra(QuaggaDaemon):
+    NAME = 'zebra'
+    PRIO = 0
+    # We want zebra to insert routes in the kernel RT
+    STARTUP_LINE_EXTRA = '-k'
+
+    def __init__(self, *args, **kwargs):
+        super(Zebra, self).__init__(*args, **kwargs)
 
     def build(self):
         cfg = super(Zebra, self).build()
@@ -39,16 +60,19 @@ class Zebra(Daemon):
                           for itf in realIntfList(self._node))
         return cfg
 
-    def _set_defaults(self, defaults):
-        """:param debug: The set of debug events that should be logged
-        :param access_lists: The set of AccessList to create, independently
+    def set_defaults(self, defaults):
+        """:param access_lists: The set of AccessList to create, independently
                              from the ones already included by route_maps
         :param route_maps: The set of RouteMap to create
         :param static_routes: The set of StaticRoute to create"""
-        defaults.debug = ()
         defaults.access_lists = ()
         defaults.route_maps = ()
         defaults.static_routes = ()
+        super(Zebra, self).set_defaults(defaults)
+
+    def has_started(self):
+        # We override this such that we wait until we have the API socket
+        return os.path.exists(self.zebra_socket)
 
 
 class AccessListEntry(object):

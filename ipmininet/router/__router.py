@@ -1,9 +1,12 @@
 """This modules defines a L3 router class, with a modulable config system."""
+import time
+
 from ipmininet import DEBUG_FLAG
 from ipmininet.utils import L3Router
 from .config import BasicRouterConfig
 
 from mininet.node import Node
+from mininet.log import lg
 
 
 class ProcessHelper(object):
@@ -85,11 +88,23 @@ class Router(Node, L3Router):
         """Start the router: Configure the daemons, set the relevant sysctls,
         and fire up all needed processes"""
         self.cmd('ip', 'link', 'set', 'dev', 'lo', 'up')
+        # Build the config
         self.config.build()
+        # Check them
+        for d in self.config.daemons:
+            out = self._processes.call(*d.dry_run.split(' '))
+            if out:
+                lg.warning('Process', d.NAME, 'reported the following message'
+                           ' when checking the configuration:\n', out, '\n')
+        # Set relevant sysctls
         for opt, val in self.config.sysctl:
             self._old_sysctl[opt] = self._set_sysctl(opt, val)
+        # Fire up all daemons
         for d in self.config.daemons:
             self._processes.popen(*d.startup_line.split(' '))
+            # Busy-wait if the daemon needs some time before being started
+            while not d.has_started():
+                time.sleep(.001)
 
     def terminate(self):
         """Stops this router and sets back all sysctls to their old values"""

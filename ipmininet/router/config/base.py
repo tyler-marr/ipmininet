@@ -103,6 +103,10 @@ class RouterConfig(object):
     def daemons(self):
         return sorted(self._daemons.itervalues(), key=attrgetter('PRIO'))
 
+    def has_started(self):
+        """Return whether this daemon has started or not"""
+        return True
+
 
 class Daemon(object):
     """This class serves as base for routing daemons"""
@@ -177,6 +181,11 @@ class Daemon(object):
     def startup_line(self):
         """Return the corresponding startup_line for this daemon"""
 
+    @abc.abstractproperty
+    def dry_run(self):
+        """The startup line to use to check that the daemon is
+        well-configured"""
+
     def _filename(self, suffix):
         """Return a filename for this daemon and node,
         with the specified suffix"""
@@ -206,13 +215,13 @@ class Daemon(object):
         defaults = ConfigDict()
         defaults.logfile = self._file('log')
         # Apply daemon-specific defaults
-        self._set_defaults(defaults)
+        self.set_defaults(defaults)
         # Use user-supplied defaults if present
         defaults.update(**kwargs)
         return defaults
 
     @abc.abstractmethod
-    def _set_defaults(self, defaults):
+    def set_defaults(self, defaults):
         """Update defaults to contain the defaults specific to this daemon"""
 
 

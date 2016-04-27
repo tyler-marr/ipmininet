@@ -1,15 +1,14 @@
 """Base classes to configure an OSPF daemon"""
 from ipaddress import ip_interface
 
-from .base import Daemon
-from .zebra import Zebra
+from .zebra import QuaggaDaemon, Zebra
 from .utils import ConfigDict
 from ipmininet.utils import otherIntf, L3Router, realIntfList
 from ipmininet.link import address_comparator
 
 
-class OSPF(Daemon):
-    """This class provides a simpel configuration for an OSPF daemon.
+class OSPF(QuaggaDaemon):
+    """This class provides a simple configuration for an OSPF daemon.
     It advertizes one network per interface (the primary one), and set
     interfaces not facing another L3Router to passive"""
     NAME = 'ospfd'
@@ -17,14 +16,6 @@ class OSPF(Daemon):
 
     def __init__(self, *args, **kwargs):
         super(OSPF, self).__init__(*args, **kwargs)
-
-    @property
-    def startup_line(self):
-        return '{name} -f {cfg} -i {pid} -z {api}'\
-                .format(name=self.NAME,
-                        cfg=self.cfg_filename,
-                        pid=self._file('pid'),
-                        api=Zebra.zebra_socket(self._node))
 
     def build(self):
         cfg = super(OSPF, self).build()
@@ -61,18 +52,17 @@ class OSPF(Daemon):
                            passive=i.get('igp_passive', False))
                 for i in interfaces]
 
-    def _set_defaults(self, defaults):
+    def set_defaults(self, defaults):
         """:param dead_int: Dead interval timer
         :param hello_int: Hello interval timer
         :param cost: metric for interface
         :param priority: priority for the interface, used for DR election
-        :param redistribute: set of OSPFRedistributedRoute sources
-        :param debug: The set of debug events to log"""
+        :param redistribute: set of OSPFRedistributedRoute sources"""
         defaults.dead_int = 3
         defaults.hello_int = 1
         defaults.priority = 10
         defaults.redistribute = ()
-        defaults.debug = ()
+        super(OSPF, self).set_defaults(defaults)
 
     def is_active_interface(self, itf):
         """Return whether an interface is active or not for the OSPF daemon"""
