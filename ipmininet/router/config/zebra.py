@@ -49,7 +49,8 @@ class QuaggaDaemon(Daemon):
 class Zebra(QuaggaDaemon):
     NAME = 'zebra'
     PRIO = 0
-    # We want zebra to insert routes in the kernel RT
+    # We want zebra to preserve existing routes in the kernel RT (e.g. those
+    # set via ip route)
     STARTUP_LINE_EXTRA = '-k'
 
     def __init__(self, *args, **kwargs):

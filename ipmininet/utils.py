@@ -64,3 +64,16 @@ class L3Router(object):
         """Returns whether an interface belongs to an L3Router
         (in the Mininet meaning: an intf with an associated node)"""
         return isinstance(itf.node, L3Router)
+
+
+def get_set(d, key, default):
+    """Attempt to return the value for the given key,
+    otherwise intialize it
+
+    :param d: dict
+    :param default: constructor"""
+    try:
+        return d[key]
+    except KeyError:
+        x = d[key] = default()
+        return x

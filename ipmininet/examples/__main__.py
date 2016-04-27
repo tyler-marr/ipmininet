@@ -5,10 +5,12 @@ import ipmininet
 from ipmininet.ipnet import IPNet
 from ipmininet.cli import IPCLI
 from .simple_ospf_network import SimpleOSPFNet
+from .simple_bgp_network import SimpleBGPTopo
 from mininet.log import lg, LEVELS
 
 TOPOS = {
-         'simple_ospf_network': SimpleOSPFNet
+         'simple_ospf_network': SimpleOSPFNet,
+         'simple_bgp_network': SimpleBGPTopo
         }
 
 

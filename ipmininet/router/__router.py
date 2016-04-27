@@ -94,8 +94,9 @@ class Router(Node, L3Router):
         for d in self.config.daemons:
             out = self._processes.call(*d.dry_run.split(' '))
             if out:
-                lg.warning('Process', d.NAME, 'reported the following message'
-                           ' when checking the configuration:\n', out, '\n')
+                lg.error('Process', d.NAME, 'reported the following message'
+                         ' when checking the configuration:\n', str(out),
+                         '\n')
         # Set relevant sysctls
         for opt, val in self.config.sysctl:
             self._old_sysctl[opt] = self._set_sysctl(opt, val)
@@ -127,3 +128,11 @@ class Router(Node, L3Router):
         if v != val:
             self._processes.call('sysctl', '-w', '%s=%s' % (key, val))
         return v
+
+    def get(self, key, val=None):
+        """Check for a given key in the router parameters"""
+        return self.params.get(key, val)
+
+    @property
+    def asn(self):
+        return self.get('asn')

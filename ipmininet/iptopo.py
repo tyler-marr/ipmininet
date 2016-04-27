@@ -3,18 +3,20 @@ from collections import defaultdict
 from mininet.topo import Topo
 from mininet.log import lg
 
+from ipmininet.utils import get_set
+
 
 class IPTopo(Topo):
     """A topology that supports L3 routers"""
 
     def __init__(self, *args, **kwargs):
-        self.overlays = {}
+        self.overlays = []
         super(IPTopo, self).__init__(*args, **kwargs)
 
     def build(self, *args, **kwargs):
-        for o in self.overlays.itervalues():
+        for o in self.overlays:
             o.apply(self)
-        for o in self.overlays.itervalues():
+        for o in self.overlays:
             if not o.check_consistency(self):
                 lg.error('Consistency checks for', str(o),
                          'overlay have failed!\n')
@@ -55,13 +57,19 @@ class IPTopo(Topo):
         """Add a new overlay on this topology"""
         if not isinstance(overlay, Overlay) and issubclass(overlay, Overlay):
             overlay = overlay()
-        self.overlays[overlay.__cls__] = overlay
+        self.overlays.append(overlay)
 
-    def getOverlay(self, cls):
-        """Get the overlay matching the given class"""
-        if isinstance(cls, Overlay):
-            cls = cls.__class__
-        return self.overlays[cls]
+    def getNodeInfo(self, n, key, default):
+        """Attempt to retrieve the information for the given node/key
+        combination. If not found, set to an instance of default and return
+        it"""
+        return get_set(self.nodeInfo(n), key, default)
+
+    def getLinkInfo(self, l, key, default):
+        """Attempt to retrieve the information for the given link/key
+        combination. If not found, set to an instance of default and return
+        it"""
+        return get_set(self.linkInfo(l), key, default)
 
 
 class Overlay(object):

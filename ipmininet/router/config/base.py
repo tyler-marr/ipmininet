@@ -29,7 +29,7 @@ class RouterConfig(object):
                        interfaces."""
         self._node = node  # The node for which we will build the configuration
         self._daemons = {}  # Active daemons
-        self.register_daemon(*daemons)
+        map(self.register_daemon, daemons)
         self._cfg = ConfigDict()  # Our root config object
         self._sysctl = {'net.ipv4.ip_forward': 1,
                         'net.ipv6.conf.all.forwarding': 1}
@@ -44,9 +44,9 @@ class RouterConfig(object):
         self._cfg.password = self._node.password
         self._cfg.name = self._node.name
         # Check that all daemons have their dependencies satisfied
-        self.register_daemon(*(c for cls in self._daemons.itervalues()
-                               for c in cls.DEPENDS
-                               if c.NAME not in self._daemons))
+        map(self.register_daemon,
+            (c for cls in self._daemons.values()
+             for c in cls.DEPENDS if c.NAME not in self._daemons))
         # Build their config
         for name, d in self._daemons.iteritems():
             self._cfg[name] = d.build()
@@ -61,24 +61,28 @@ class RouterConfig(object):
         for d in self._daemons.itervalues():
             d.cleanup()
 
-    def register_daemon(self, *daemons, **daemon_opts):
+    def register_daemon(self, cls, **daemon_opts):
         """Add a new daemon to this configuration
 
-        :param cls: Daemon class or object
+        :param cls: Daemon class or object, or a 2-tuple (Daemon, dict)
         :param daemon_opts: Options to set on the daemons"""
-        for cls in daemons:
-            if cls.NAME in self._daemons:
-                continue
-            if not isinstance(cls, Daemon):
-                if issubclass(cls, Daemon):
-                    cls = cls(self._node, **daemon_opts)
-                else:
-                    raise TypeError('Expected an object or a subclass of '
-                                    'Daemon, got %s instead' % cls)
+        try:
+            cls, kw = cls
+            daemon_opts.update(kw)
+        except TypeError:
+            pass
+        if cls.NAME in self._daemons:
+            return
+        if not isinstance(cls, Daemon):
+            if issubclass(cls, Daemon):
+                cls = cls(self._node, **daemon_opts)
             else:
-                cls.options.update(daemon_opts)
-            self._daemons[cls.NAME] = cls
-            require_cmd(cls.NAME, 'Could not find an executable for a daemon!')
+                raise TypeError('Expected an object or a subclass of '
+                                'Daemon, got %s instead' % cls)
+        else:
+            cls.options.update(daemon_opts)
+        self._daemons[cls.NAME] = cls
+        require_cmd(cls.NAME, 'Could not find an executable for a daemon!')
 
     @property
     def sysctl(self):
@@ -102,6 +106,15 @@ class RouterConfig(object):
     @property
     def daemons(self):
         return sorted(self._daemons.itervalues(), key=attrgetter('PRIO'))
+
+    def daemon(self, key):
+        """Return the Daemon object in this config for the given key
+        :param key: the daemon name or a daemon class or instance
+        :return the Daemon object
+        :raise KeyError: if not found"""
+        if not isinstance(key, basestring):
+            key = key.NAME
+        return self._daemons[key]
 
 
 class Daemon(object):

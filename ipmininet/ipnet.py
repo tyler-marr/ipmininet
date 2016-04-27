@@ -4,11 +4,12 @@ unspecified by the user"""
 import math
 from operator import attrgetter
 
-from ipaddress import ip_network, IPv4Network, IPv6Network, ip_interface
+from ipaddress import ip_network, ip_interface
 
 from . import MIN_IGP_METRIC, OSPF_DEFAULT_AREA
 from .utils import otherIntf, realIntfList, L3Router
 from .router import Router
+from .router.config import BasicRouterConfig
 from .link import IPIntf, IPLink
 
 from mininet.net import Mininet
@@ -21,6 +22,7 @@ class IPNet(Mininet):
     """IPNet: An IP-aware Mininet"""
     def __init__(self,
                  router=Router,
+                 config=BasicRouterConfig,
                  use_v4=True,
                  ipBase='192.168.0.0/16',
                  max_v4_prefixlen=24,
@@ -40,6 +42,7 @@ class IPNet(Mininet):
 
 
         :param router: The class to use to build routers
+        :param config: The default configuration for the routers
         :param use_v4: Enable IPv4
         :param max_v4_prefixlen: The maximal IPv4 prefix for the auto-allocated
                                     broadcast domains
@@ -50,6 +53,7 @@ class IPNet(Mininet):
         :param igp_metric: The default IGP metric for the links
         :param igp_area: The default IGP area for the links"""
         self.router = router
+        self.config = config
         self.routers = []  # the list of router in the network
         self._ip_allocs = {}  # We need this to be able to do inverse-lookups
         self.max_v4_prefixlen = max_v4_prefixlen
@@ -72,7 +76,8 @@ class IPNet(Mininet):
 
         :param name: the node name
         :param cls: the class to use to instantiate it"""
-        defaults = {'use_v4': self.use_v4, 'use_v6': self.use_v6}
+        defaults = {'use_v4': self.use_v4, 'use_v6': self.use_v6,
+                    'config': self.config}
         defaults.update(params)
         if not cls:
             cls = self.router
