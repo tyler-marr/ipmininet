@@ -19,6 +19,7 @@ class IPCLI(CLI):
                 n = 'unknown IP'
             finally:
                 lg.info(ip, '|', n)
+        lg.info('\n')
 
     def do_ips(self, line):
         """ips n1 n2 ...: return the ips associated to the given node name"""
@@ -29,3 +30,4 @@ class IPCLI(CLI):
                 l = 'unknown node'
             finally:
                 lg.info(n, '|', l)
+        lg.info('\n')
