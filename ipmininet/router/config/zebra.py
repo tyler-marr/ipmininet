@@ -1,5 +1,7 @@
 import os
 
+from ipaddress import ip_network
+
 from .base import Daemon
 from .utils import ConfigDict
 from ipmininet.utils import realIntfList
@@ -181,5 +183,5 @@ class StaticRoute(object):
         """:param prefix: The prefix for this static route
         :param nexthop: The nexthop for this prefix, one of: <IP address,
                         interface name, null0, blackhole, reject>"""
-        self.prefix = prefix
+        self.prefix = ip_network(prefix)
         self.nexthop = nexthop

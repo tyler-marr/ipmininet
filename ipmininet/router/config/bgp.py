@@ -1,6 +1,8 @@
 """Base classes to configure a BGP daemon"""
 import itertools
 
+from ipaddress import ip_network
+
 from .zebra import QuaggaDaemon, Zebra
 
 from ipmininet.iptopo import Overlay
@@ -62,6 +64,13 @@ def bgp_peering(topo, a, b):
     topo.getNodeInfo(b, 'bgp_peers', list).append(a)
 
 
+def ebgp_session(topo, a, b):
+    """Register an eBGP peering between two nodes, and disable IGP adjacencies
+    between them."""
+    bgp_peering(topo, a, b)
+    topo.linkInfo(a, b)['igp_passive'] = True
+
+
 class BGP(QuaggaDaemon):
     """This class provides the configuration skeletons for BGP routers."""
     NAME = 'bgpd'
@@ -72,13 +81,16 @@ class BGP(QuaggaDaemon):
         # We add the port to the standard startup line
         return '-p %s' % self.port
 
-    def __init__(self, node, port=BGP_DEFAULT_PORT, *args, **kwargs):
+    def __init__(self, node, routerid=None, port=BGP_DEFAULT_PORT,
+                 *args, **kwargs):
         super(BGP, self).__init__(node=node, *args, **kwargs)
         self.port = port
+        self.routerid = routerid
 
     def build(self):
         cfg = super(BGP, self).build()
         cfg.asn = self._node.asn
+        cfg.routerid = self.routerid
         cfg.neighbors = self._build_neighbors()
         cfg.address_families = self._address_families(
                 self.options.address_families, cfg.neighbors)
@@ -108,7 +120,7 @@ class AddressFamily(object):
     def __init__(self, af_name, redistribute=(), networks=(),
                  *args, **kwargs):
         self.name = af_name
-        self.networks = networks
+        self.networks = map(ip_network, networks)
         self.redistribute = redistribute
         self.neighbors = []
         super(AddressFamily, self).__init__()
@@ -135,7 +147,7 @@ class Peer(object):
             self.port = other.config.daemon(BGP).port
         except KeyError:  # No configured daemon - yet - use default
             self.port = BGP_DEFAULT_PORT
-        # We default to nexthop self including iBGP
+        # We default to nexthop self for all peering type
         self.nh_self = 'next-hop-self all'
         # We enable eBGP multihop if eBGP is in use
         ebgp = self.asn != base.asn
@@ -146,9 +158,19 @@ class Peer(object):
     def _find_peer_address(base, peer):
         """Return the IP address that base should try to contact to establish
         a peering"""
-        for i in realIntfList(base):
+        visited = set()
+        to_visit = realIntfList(base)
+        # Explore all interfaces in base ASN recursively, until we find one
+        # connected to the peer
+        while to_visit:
+            i = to_visit.pop()
+            if i in visited:
+                continue
+            visited.add(i)
             for n in i.broadcast_domain.routers:
                 if n.node.name == peer:
                     ip = n.ip
                     return (ip if ip else n.ip6), n.node
+                elif n.node.asn == base.asn or not n.node.asn:
+                    to_visit.extend(realIntfList(n.node))
         return None, None

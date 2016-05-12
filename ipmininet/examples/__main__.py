@@ -4,13 +4,17 @@ import argparse
 import ipmininet
 from ipmininet.ipnet import IPNet
 from ipmininet.cli import IPCLI
+
 from .simple_ospf_network import SimpleOSPFNet
 from .simple_bgp_network import SimpleBGPTopo
+from .bgp_decision_process import BGPDecisionProcess
+
 from mininet.log import lg, LEVELS
 
 TOPOS = {
          'simple_ospf_network': SimpleOSPFNet,
-         'simple_bgp_network': SimpleBGPTopo
+         'simple_bgp_network': SimpleBGPTopo,
+         'bgp_decision_process': BGPDecisionProcess
         }
 
 
@@ -21,6 +25,9 @@ def parse_args():
                         help='The topology that you want to start.')
     parser.add_argument('--log', choices=LEVELS.keys(), default='info',
                         help='The level of details in the logs.')
+    parser.add_argument('--args', help='Additional arguments to give'
+                        'to the topology constructor (key=val, key=val, ...)',
+                        default='')
     return parser.parse_args()
 
 
@@ -29,7 +36,14 @@ if __name__ == '__main__':
     lg.setLogLevel(args.log)
     if args.log == 'debug':
         ipmininet.DEBUG_FLAG = True
-    net = IPNet(topo=TOPOS[args.topo]())
+    kwargs = {}
+    for arg in args.args.strip(' \r\t\n').split(','):
+        try:
+            k, v = arg.strip(' \r\t\n').split('=')
+            kwargs[k] = v
+        except ValueError:
+            lg.error('Ignoring args:', arg)
+    net = IPNet(topo=TOPOS[args.topo](**kwargs))
     net.start()
     IPCLI(net)
     net.stop()

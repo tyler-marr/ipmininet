@@ -68,7 +68,8 @@ class Router(Node, L3Router):
         """Most of the heavy lifting for this router should happen in the
         associated config object.
 
-        :param config: The configuration generator for this router
+        :param config: The configuration generator for this router. Either a
+                        class or a tuple (class, kwargs)
         :param cwd: The base directory for temporary files such as configs
         :param process_manager: The class that will manage all the associated
                                 processes for this router
@@ -81,7 +82,8 @@ class Router(Node, L3Router):
         self.password = password
         self.cwd = cwd
         self._old_sysctl = {}
-        self.config = config(self)
+        self.config = (config[0](self, **config[1]) if len(config) > 1
+                       else config(self))
         self._processes = process_manager(self)
 
     def start(self):

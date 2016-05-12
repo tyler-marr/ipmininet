@@ -12,16 +12,16 @@ debug bgp section
 router bgp ${node.bgpd.asn}
 % if node.bgpd.routerid:
     bgp router-id ${node.bgpd.routerid}
+% elif node.ospfd:
+    bgp router-id ${node.ospfd.router_id}
 % endif
+    bgp bestpath compare-routerid
 % for n in node.bgpd.neighbors:
     neighbor ${n.peer} remote-as ${n.asn}
     neighbor ${n.peer} port ${n.port}
     neighbor ${n.peer} description ${n.description}
     % if n.ebgp_multihop:
     neighbor ${n.peer} ebgp-multihop
-    % endif
-    % if n.nh_self:
-    neighbor ${n.peer} ${n.nh_self}
     % endif
     <%block name="neighbor"/>
 % endfor
@@ -37,6 +37,9 @@ router bgp ${node.bgpd.asn}
     % endfor
     % for n in af.neighbors:
     neighbor ${n.peer} activate
+        % if n.nh_self:
+    neighbor ${n.peer} ${n.nh_self}
+        % endif
     % endfor
     % if af.name != 'ipv4':
     exit-address-family
