@@ -9,6 +9,10 @@ for it.
 
 The following sections will detail the topologies.
 
+   - [SimpleOSPFNetwork](#simpleospfnetwork)
+   - [SimpleBGPNetwork](#simplebgpnetwork)
+   - [BGPDecisionProcess](#bgpdecisionprocess)
+
 ## SimpleOSPFNetwork
 
 _topo name_ : simple_ospf_network
