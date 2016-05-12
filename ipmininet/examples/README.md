@@ -1,0 +1,65 @@
+# Example topologies
+
+This directory contains example topologies, you can start them using
+```bash
+python -m ipmininet.examples --topo=[topo_name] [--args key=val,key=val]
+```
+Where topo_name is the name of the topology, and args are optional arguments
+for it.
+
+The following sections will detail the topologies.
+
+## SimpleOSPFNetwork
+
+_topo name_ : simple_ospf_network
+_args_ : n/a
+
+This network spawn a single AS topology, using OSPF, with multiple areas and
+variable link metrics.
+From the mininet CLI, access the routers vtysh using
+```bash
+[noecho rx] telnet localhost [ospfd/zebra]
+```
+Where the noecho rx is required if you don't use a separate xterm window for
+the node (via `xterm rx`), and ospfd/zebra is the name of the daemon you wish to
+connect to.
+
+
+## SimpleBGPNetwork
+
+_topo name_ : simple_bgp_network
+_args_ : n/a
+
+This networks spawn ASes, exchanging reachability information.
+    - AS1 has one eBGP peering with AS2
+    - AS2 has 2 routers, using iBGP between them, and has two eBGP peering, one with AS1 and one with AS3
+    - AS3 has one eBGP peerin with AS2
+
+
+## BGPDecisionProcess
+
+_topo name_ : bgp_decision_process
+_args_ : other_cost (defaults to 5)
+
+This network is similar to SimpleBGPNetwork. However, AS2 has more routers, and
+not all of them run BGP. It attempts to show cases the effect of the IGP cost
+in the BGP decision process in Quagga.
+
+Both AS1 and AS3 advertize a router towards 1.2.3.0/24 to AS2 eBGP routers as2r1
+and as2r2. These routers participate in an OSPF topology inside their AS, which
+looks as follow:
+as2r1 -[10]- x -[1]- as2r3 -[1]- y -[other_cost]- as2r2.
+as2r1, as2r3 and as2r2 also participate in an iBGP fullmesh.
+
+Depending on the value of [other_cost] (if it is greater or lower than 10),
+as2r3 will either choose to use as2r1 or as2r2 as nexthop for 1.2.3.0/24, as
+both routes are equal up to step #8 in the decision process, which is the IGP 
+cost (in a loosely defined way, as it includes any route towards the BGP
+nexthop). If other_cost is 10, we then arrive at step #10 to choose the best
+routes, and compare the routerids of as2r1 and as2r2 to select the path
+(1.1.1.1 (as2r1) vs 1.1.1.2 (as2r2), so we select the route from as2r1).
+
+You can observe this selection by issuing one of the following command sequence
+once BGP has converged:
+    - net > as2r3 ip route show 1.2.3.0/24
+    - [noecho as2r3] telnet localhost bgpd > password is zebra > enable > show ip bgp 1.2.3.0/24
