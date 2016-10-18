@@ -1,7 +1,7 @@
 """Base classes to configure a BGP daemon"""
 import itertools
 
-from ipaddress import ip_network
+from ipaddress import ip_network, ip_interface
 
 from .zebra import QuaggaDaemon, Zebra
 
@@ -75,6 +75,8 @@ class BGP(QuaggaDaemon):
     """This class provides the configuration skeletons for BGP routers."""
     NAME = 'bgpd'
     DEPENDS = (Zebra,)
+    last_routerid = ip_interface("0.0.0.1")
+    routerids_taken = []
 
     @property
     def STARTUP_LINE_EXTRA(self):
@@ -85,7 +87,11 @@ class BGP(QuaggaDaemon):
                  *args, **kwargs):
         super(BGP, self).__init__(node=node, *args, **kwargs)
         self.port = port
-        self.routerid = routerid
+        if routerid is None:
+            self.routerid = BGP.next_router_id()
+        else:
+            self.routerid = routerid
+            BGP.routerids_taken.append(ip_interface(routerid))
 
     def build(self):
         cfg = super(BGP, self).build()
@@ -112,6 +118,14 @@ class BGP(QuaggaDaemon):
         for a in af:
             a.neighbors.extend(nei)
         return af
+
+    @classmethod
+    def next_router_id(cls):
+        """Compute the next router ID available"""
+        cls.last_routerid += 1
+        while cls.last_routerid in cls.routerids_taken:
+            cls.last_routerid += 1
+        return cls.last_routerid.with_prefixlen.split("/")[0]
 
 
 class AddressFamily(object):
@@ -141,7 +155,7 @@ class Peer(object):
     def __init__(self, base, node):
         """:param base: The base router that has this peer
         :param node: The actual peer"""
-        self.peer, other = self._find_peer_address(base, node)
+        self.peer, other, self.peer_is_active = self._find_peer_address(base, node)
         self.asn = other.asn
         try:
             self.port = other.config.daemon(BGP).port
@@ -170,7 +184,7 @@ class Peer(object):
             for n in i.broadcast_domain.routers:
                 if n.node.name == peer:
                     ip = n.ip
-                    return (ip if ip else n.ip6), n.node
+                    return (ip, n.node, i.ip > ip) if ip else (n.ip6, n.node, i.ip6 > n.ip6)
                 elif n.node.asn == base.asn or not n.node.asn:
                     to_visit.extend(realIntfList(n.node))
-        return None, None
+        return None, None, False

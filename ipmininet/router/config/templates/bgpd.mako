@@ -17,11 +17,15 @@ router bgp ${node.bgpd.asn}
 % endif
     bgp bestpath compare-routerid
 % for n in node.bgpd.neighbors:
+    no auto-summary
     neighbor ${n.peer} remote-as ${n.asn}
     neighbor ${n.peer} port ${n.port}
     neighbor ${n.peer} description ${n.description}
     % if n.ebgp_multihop:
     neighbor ${n.peer} ebgp-multihop
+    % endif
+    % if n.peer_is_active:
+    neighbor ${n.peer} passive
     % endif
     <%block name="neighbor"/>
 % endfor
