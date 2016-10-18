@@ -27,6 +27,8 @@ class IPIntf(_m.Intf):
         super(IPIntf, self).__init__(*args, **kwargs)
         self.isUp(setUp=True)
         self._refresh_addresses()
+        self.ra_prefixes = kwargs.get('ra', [])
+        self.rdnss_list = kwargs.get('rdnss', [])
 
     @property
     def igp_area(self):

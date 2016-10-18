@@ -160,10 +160,17 @@ class IPNet(Mininet):
                     if self.use_v4 and len(r.addresses[4]) > 0:
                         h.setDefaultRoute('via %s' % r.ip)
                         default = True
-                    if self.use_v6 and len(r.addresses[6]) > 0:
+                    if self.use_v6 and len(r.addresses[6]) > 0 and len(r.ra_prefixes) == 0:
+                        # We define a default route only if router advertisement are not activated
                         # If we call the same function, the route created above might be deleted
                         h.cmd('ip route add default dev %s via %s' % (h.defaultIntf(), r.ip6))
                         default = True
+                    if len(r.rdnss_list) > 0:
+                        # Launch a daemon able to interpret this RA option
+                        process = h.popen("dhcpcd -d %s" % (itf.name,))
+                        return_value = process.poll()
+                        if return_value is not None and return_value != 0:
+                            print("DHCP Client Failure %s" % (return_value,))
                     break
                 if default:
                     break
