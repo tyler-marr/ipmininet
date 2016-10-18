@@ -155,7 +155,7 @@ class Daemon(object):
         for f in self.files:
             try:
                 os.unlink(f)
-            except IOError:
+            except (IOError, OSError):
                 pass
         self.files = []
 

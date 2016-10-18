@@ -82,8 +82,10 @@ class Router(Node, L3Router):
         self.password = password
         self.cwd = cwd
         self._old_sysctl = {}
-        self.config = (config[0](self, **config[1]) if len(config) > 1
-                       else config(self))
+        try:
+            self.config = config[0](self, **config[1])
+        except (TypeError, IndexError):
+            self.config = config(self)
         self._processes = process_manager(self)
 
     def start(self):
