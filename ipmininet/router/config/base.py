@@ -247,11 +247,16 @@ class BasicRouterConfig(RouterConfig):
         :param additional_daemons: Other daemons that should be used"""
         # Importing here to avoid circular import
         from ospf import OSPF
-        # We don't want any zebra-specific settings, so we rely on the OSPF
+        from ospf6 import OSPF6
+        # We don't want any zebra-specific settings, so we rely on the OSPF/OSPF6
         # DEPENDS list for that daemon to run it with default settings
         # We also don't want specific settings beside the defaults, so we don't
         # provide an instance but the class instead
-        d = [OSPF]
+        d = []
+        if node.use_v4:
+            d.append(OSPF)
+        elif node.use_v6:
+            d.append(OSPF6)
         d.extend(additional_daemons)
         super(BasicRouterConfig, self).__init__(node, daemons=d,
                                                 *args, **kwargs)

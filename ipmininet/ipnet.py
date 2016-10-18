@@ -154,12 +154,16 @@ class IPNet(Mininet):
                 continue  # Skipping hosts with explicit default route
             default = False
             # The first router we find will become the default gateway
-            # TODO make it work with v6 as well
             for itf in realIntfList(h):
                 for r in itf.broadcast_domain.routers:
                     log.info('%s via %s, ' % (h.name, r.name))
-                    h.setDefaultRoute('via %s' % r.ip)
-                    default = True
+                    if self.use_v4 and len(r.addresses[4]) > 0:
+                        h.setDefaultRoute('via %s' % r.ip)
+                        default = True
+                    if self.use_v6 and len(r.addresses[6]) > 0:
+                        # If we call the same function, the route created above might be deleted
+                        h.cmd('ip route add default dev %s via %s' % (h.defaultIntf(), r.ip6))
+                        default = True
                     break
                 if default:
                     break

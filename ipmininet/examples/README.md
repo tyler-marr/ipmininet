@@ -18,8 +18,7 @@ The following sections will detail the topologies.
 _topo name_ : simple_ospf_network
 _args_ : n/a
 
-This network spawn a single AS topology, using OSPF, with multiple areas and
-variable link metrics.
+This network spawn a single AS topology, using OSPF, with variable link metrics.
 From the mininet CLI, access the routers vtysh using
 ```bash
 [noecho rx] telnet localhost [ospfd/zebra]
@@ -28,6 +27,20 @@ Where the noecho rx is required if you don't use a separate xterm window for
 the node (via `xterm rx`), and ospfd/zebra is the name of the daemon you wish to
 connect to.
 
+## SimpleOSPFv3Network
+
+_topo name_ : simple_ospfv3_network
+_args_ : n/a
+
+This network spawn a single AS topology, using OSPFv6, with multiple areas and
+variable link metrics.
+From the mininet CLI, access the routers vtysh using
+```bash
+[noecho rx] telnet localhost [ospf6d/zebra]
+```
+Where the noecho rx is required if you don't use a separate xterm window for
+the node (via `xterm rx`), and ospf6d/zebra is the name of the daemon you wish to
+connect to.
 
 ## SimpleBGPNetwork
 
