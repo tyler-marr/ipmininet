@@ -35,9 +35,10 @@ _topo name_ : simple_bgp_network
 _args_ : n/a
 
 This networks spawn ASes, exchanging reachability information.
-    - AS1 has one eBGP peering with AS2
-    - AS2 has 2 routers, using iBGP between them, and has two eBGP peering, one with AS1 and one with AS3
-    - AS3 has one eBGP peerin with AS2
+
+   - AS1 has one eBGP peering with AS2
+   - AS2 has 2 routers, using iBGP between them, and has two eBGP peering, one with AS1 and one with AS3
+   - AS3 has one eBGP peerin with AS2
 
 
 ## BGPDecisionProcess
@@ -65,5 +66,6 @@ routes, and compare the routerids of as2r1 and as2r2 to select the path
 
 You can observe this selection by issuing one of the following command sequence
 once BGP has converged:
-    - net > as2r3 ip route show 1.2.3.0/24
-    - [noecho as2r3] telnet localhost bgpd > password is zebra > enable > show ip bgp 1.2.3.0/24
+
+   - net > as2r3 ip route show 1.2.3.0/24
+   - [noecho as2r3] telnet localhost bgpd > password is zebra > enable > show ip bgp 1.2.3.0/24
