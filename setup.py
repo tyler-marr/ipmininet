@@ -4,7 +4,7 @@
 
 from setuptools import setup, find_packages
 
-VERSION = '0.1a'
+VERSION = '0.2.1'
 
 modname = distname = 'ipmininet'
 
@@ -12,7 +12,7 @@ setup(
     name=distname,
     version=VERSION,
     description='A mininet extension providing components to emulate IP'
-                'networks running multiple protocols with ease',
+                'networks running multiple protocols.',
     author='Olivier Tilmans',
     author_email='olivier.tilmans@uclouvain.be',
     packages=find_packages(),
@@ -23,6 +23,8 @@ setup(
         "Development Status :: 2 - Pre-Alpha",
         "Intended Audience :: Developers",
         "Topic :: System :: Networking",
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7'
         ],
     keywords='networking OSPF IP BGP quagga mininet',
     license='GPLv2',
@@ -33,5 +35,6 @@ setup(
         'mininet'
     ],
     tests_require=['pytest'],
-    setup_requires=['pytest-runner']
+    setup_requires=['pytest-runner'],
+    url='https://github.com/oliviertilmans/ipmininet'
 )
