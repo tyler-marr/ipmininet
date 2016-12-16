@@ -277,12 +277,27 @@ def address_comparator(a, b):
 
 
 class PhysicalInterface(IPIntf):
-    """An interface that will wrap around an existing physical interface,
-    and try to preserve its addresses."""
+    """An interface that will wrap around an existing (physical) interface,
+    and try to preserve its addresses.
+    The interface must be present in the root namespace."""
 
     def __init__(self, name, *args, **kw):
+        try:
+            node = kw['node']
+        except KeyError:
+            raise ValueError('PhysicalInterface() requires a node= argument')
         # Save the addresses from the root namespace
-        _, v4, v6 = _addresses_of(name, node=None)
+        try:
+            _, v4, v6 = _addresses_of(name, node=None)
+        except (subprocess.CalledProcessError, OSError):
+            log.error('Cannot retrieve the addresses of interface', name, '!')
+            raise ValueError('Unknown physical interface name')
+        if node.inNamespace:
+            # cfr man ip-link; some devices cannot change of net ns
+            if 'netns-local: on' in subprocess.check_output(
+                    ('ethtool', '-k', name)):
+                log.error('Cannot move interface', name, 'into another network'
+                          ' namespace!')
         super(PhysicalInterface, self).__init__(name, *args, **kw)
         # Exclude link locals ...
         v4.extend(ip for ip in v6 if not ip.is_link_local)
