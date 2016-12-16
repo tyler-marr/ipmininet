@@ -11,6 +11,7 @@ class IPTopo(Topo):
 
     def __init__(self, *args, **kwargs):
         self.overlays = []
+        self.phys_interface_capture = {}
         super(IPTopo, self).__init__(*args, **kwargs)
 
     def build(self, *args, **kwargs):
@@ -70,6 +71,10 @@ class IPTopo(Topo):
         combination. If not found, set to an instance of default and return
         it"""
         return get_set(self.linkInfo(l), key, default)
+
+    def capture_physical_interface(self, intfname, node):
+        """Adds a pre-existing physical interface to the given node."""
+        self.phys_interface_capture[intfname] = node
 
 
 class Overlay(object):

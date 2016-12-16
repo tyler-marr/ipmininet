@@ -10,7 +10,7 @@ from . import MIN_IGP_METRIC, OSPF_DEFAULT_AREA
 from .utils import otherIntf, realIntfList, L3Router
 from .router import Router
 from .router.config import BasicRouterConfig
-from .link import IPIntf, IPLink
+from .link import IPIntf, IPLink, PhysicalInterface
 
 from mininet.net import Mininet
 from mininet.node import Host
@@ -67,6 +67,7 @@ class IPNet(Mininet):
         self.igp_metric = igp_metric
         self.igp_area = igp_area
         self.allocate_IPs = allocate_IPs
+        self.physical_interface = {}  # itf: node
         super(IPNet, self).__init__(ipBase=ipBase, switch=switch, link=link,
                                     intf=intf, controller=controller,
                                     *args, **kwargs)
@@ -95,12 +96,13 @@ class IPNet(Mininet):
     def __len__(self):
         return len(self.routers) + super(IPNet, self).__len__()
 
-    def buildFromTopo(self, topo=None):
+    def buildFromTopo(self, topo):
         log.info('\n*** Adding Routers:\n')
         for routerName in topo.routers():
             self.addRouter(routerName, **topo.nodeInfo(routerName))
             log.info(routerName + ' ')
         log.info('\n')
+        self.physical_interface.update(topo.phys_interface_capture)
         super(IPNet, self).buildFromTopo(topo)
 
     def addLink(self, node1, node2,
@@ -182,6 +184,15 @@ class IPNet(Mininet):
                  "broadcast domains\n")
         if self.allocate_IPs:
             self._allocate_IPs()
+        # Physical interfaces are their own broadcast domain
+        for itf_name, n in self.physical_interface.iteritems():
+            try:
+                itf = PhysicalInterface(itf_name, node=self[n])
+                log.info('\n*** Adding Physical interface',
+                         itf_name, 'to', n, '\n')
+                self.broadcast_domains.append(BroadcastDomain(itf))
+            except KeyError:
+                log.error('!!! Node', n, 'not found!\n')
 
     def _allocate_IPs(self):
         """Allocate IP addresses on every interface in every broadcast

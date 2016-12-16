@@ -2,6 +2,7 @@
 enhance the Intf class from Mininet, and then define sane defaults for the link
 classes and a new TCIntf base."""
 from itertools import chain
+import subprocess
 from ipaddress import ip_interface, IPv4Interface, IPv6Interface
 
 from . import OSPF_DEFAULT_AREA, MIN_IGP_METRIC
@@ -10,7 +11,7 @@ from .utils import otherIntf, is_container
 # Apparently there is a circular import between mininet.link and mininet.node,
 # break it by importing node first
 # FIXME wait for upstream PR to be accepted ... then remove the first include
-import mininet.node as _
+import mininet.node # noqa
 import mininet.link as _m
 from mininet.log import lg as log
 
@@ -172,14 +173,8 @@ class IPIntf(_m.Intf):
 
     def _refresh_addresses(self):
         """Request and parse the addresses of this interface"""
-        self.mac = None
-        self.addresses = {4: [], 6: []}
-        addrstr = self.cmd('ip', 'address', 'show', 'dev', self.name)
-        if not addrstr:
-            raise RuntimeError('Failed to run ip address!')
-        self.mac, v4, v6 = _parse_addresses(addrstr)
-        self.addresses[4] = sorted(v4, cmp=address_comparator, reverse=True)
-        self.addresses[6] = sorted(v6, cmp=address_comparator, reverse=True)
+        self.mac, self.addresses[4], self.addresses[6] = _addresses_of(
+                                                               self.name, self)
 
     def updateIP(self):
         self._refresh_addresses()
@@ -196,6 +191,24 @@ class IPIntf(_m.Intf):
     def updateAddr(self):
         self._refresh_addresses()
         return self.ip, self.mac
+
+
+def _addresses_of(devname, node=None):
+    """Return the addresses of a named interface"""
+    cmdline = ['ip', 'address', 'show', 'dev', devname]
+    try:
+        addrstr = node.cmd(*cmdline)
+    except AttributeError:
+        addrstr = subprocess.check_output(cmdline)
+    except (OSError, subprocess.CalledProcessError):
+        addrstr = None
+    if not addrstr:
+        log.warning('Failed to run ip address!')
+        return None, (), ()
+    mac, v4, v6 = _parse_addresses(addrstr)
+    return (mac,
+            sorted(v4, cmp=address_comparator, reverse=True),
+            sorted(v6, cmp=address_comparator, reverse=True))
 
 
 def _parse_addresses(out):
@@ -261,3 +274,17 @@ def address_comparator(a, b):
     if a > b:
         return 1
     return -1 if b > a else 0
+
+
+class PhysicalInterface(IPIntf):
+    """An interface that will wrap around an existing physical interface,
+    and try to preserve its addresses."""
+
+    def __init__(self, name, *args, **kw):
+        # Save the addresses from the root namespace
+        _, v4, v6 = _addresses_of(name, node=None)
+        super(PhysicalInterface, self).__init__(name, *args, **kw)
+        # Exclude link locals ...
+        v4.extend(ip for ip in v6 if not ip.is_link_local)
+        # Apply saved addresses
+        self.setIP(v4)
