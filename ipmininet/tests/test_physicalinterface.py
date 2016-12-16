@@ -7,7 +7,8 @@ from ipmininet.ipnet import IPNet
 import pytest
 from subprocess import check_output, CalledProcessError
 from ipaddress import ip_interface
-from unittest import TestCase
+
+from . import require_root
 
 import logging
 logging.basicConfig()
@@ -51,6 +52,7 @@ def dummy_interface(request):
     return list(request.param)
 
 
+@require_root
 def test_capture_dummy_interface(dummy_interface):
     check_addresses(dummy_interface, node=None)
     net = IPNet(topo=LinkTopo())
