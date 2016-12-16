@@ -63,7 +63,10 @@ class L3Router(object):
     def is_l3router_intf(itf):
         """Returns whether an interface belongs to an L3Router
         (in the Mininet meaning: an intf with an associated node)"""
-        return isinstance(itf.node, L3Router)
+        try:
+            return isinstance(itf.node, L3Router)
+        finally:  # Attribute error, ...
+            return False
 
 
 def get_set(d, key, default):

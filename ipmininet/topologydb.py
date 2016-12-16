@@ -111,11 +111,14 @@ class TopologyDB(object):
     def _add_node(self, n, props):
         for itf in realIntfList(n):
             nh = otherIntf(itf)
-            props[nh.node.name] = {
+            itf_props = {
                 'ip': '%s/%s' % (itf.ip, itf.prefixLen),
                 'name': itf.name,
                 'bw': itf.params.get('bw', -1)
             }
+            if nh:
+                props[nh.node.name] = itf_props
+            props[itf.name] = itf_props
         self._network[n.name] = props
 
     def add_host(self, n):

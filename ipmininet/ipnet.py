@@ -359,6 +359,8 @@ class BroadcastDomain(object):
                 self.interfaces.add(i)
             # check its corresponding interface
             other = otherIntf(i)
+            if not other:  # This is an unbound interface
+                continue
             # if it is a L3 boundary register it and stop there
             if self.is_domain_boundary(other.node):
                 self.interfaces.add(other)
