@@ -5,7 +5,7 @@ box () {
 }
 
 box "Executing tests"
-py.test || exit 1
+sudo py.test || exit 1
 
 box "Packaging the source"
 python setup.py sdist || exit 1
@@ -17,3 +17,4 @@ else
     box "Uploading to TestPypi"
     twine upload dist/* -r testpypi
 fi
+rm -r dist
