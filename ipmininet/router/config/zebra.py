@@ -38,8 +38,9 @@ class QuaggaDaemon(Daemon):
         return cfg
 
     def set_defaults(self, defaults):
-        """:param debug: th set of debug events that should be logged"""
+        """:param debug: the set of debug events that should be logged"""
         defaults.debug = ()
+        super(Zebra, self).set_defaults(defaults)
 
     @property
     def dry_run(self):
