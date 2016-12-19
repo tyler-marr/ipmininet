@@ -27,7 +27,7 @@ class IPNet(Mininet):
                  ipBase='192.168.0.0/16',
                  max_v4_prefixlen=24,
                  use_v6=True,
-                 ip6Base='fd::/16',
+                 ip6Base='fc00::/7',
                  allocate_IPs=True,
                  max_v6_prefixlen=48,
                  igp_metric=MIN_IGP_METRIC,
@@ -278,9 +278,8 @@ class IPNet(Mininet):
                 while plen > net.prefixlen:
                     # Get list of subnets and append to list of previous
                     # expanded subnets as it is bigger wrt. prefixlen
-                    nets.extend(net.subnets(prefixlen_diff=1))
-                    # Check if we need to expand it further
-                    net = nets.pop(-1)
+                    net, next_net = tuple(net.subnets(prefixlen_diff=1))
+                    nets.append(next_net)
                 # Check if we have an appropriately-sized subnet
                 if plen == net.prefixlen:
                     # Register the allocation
@@ -296,7 +295,7 @@ class IPNet(Mininet):
                 # Otherwise try the next network for the current domain
 
     def _broadcast_domains(self):
-        """Build the broadcast domais for this topology"""
+        """Build the broadcast domains for this topology"""
         domains = []
         interfaces = {intf: False
                       for n in self.values()
