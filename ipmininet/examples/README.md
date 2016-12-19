@@ -12,6 +12,7 @@ The following sections will detail the topologies.
    - [SimpleOSPFNetwork](#simpleospfnetwork)
    - [SimpleBGPNetwork](#simplebgpnetwork)
    - [BGPDecisionProcess](#bgpdecisionprocess)
+   - [IPTables](#iptables)
 
 ## SimpleOSPFNetwork
 
@@ -69,3 +70,18 @@ once BGP has converged:
 
    - net > as2r3 ip route show 1.2.3.0/24
    - [noecho as2r3] telnet localhost bgpd > password is zebra > enable > show ip bgp 1.2.3.0/24
+
+## IPTables
+
+_topo name_ : iptables
+_args_ : n/a
+
+This network spawns two routers, which have custom ACLs set such that their
+inbound traffic (the INPUT chains in ip(6)tables):
+
+  - Can only be ICMP traffic over IPv4
+  - Can only be (properly established) TCP over IPv6
+
+You can test this by trying to ping(6) both routers, use nc to (try to)
+exchange data over TCP, or [tracebox](www.tracebox.org) to send a crafted TCP
+packet not part of an already established session.

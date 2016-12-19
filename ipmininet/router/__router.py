@@ -98,9 +98,9 @@ class Router(Node, L3Router):
         for d in self.config.daemons:
             out = self._processes.call(*d.dry_run.split(' '))
             if out:
-                lg.error('Process', d.NAME, 'reported the following message'
-                         ' when checking the configuration:\n', str(out),
-                         '\n')
+                lg.warning('Process %s reported the following message'
+                           ' when checking the configuration:\n%s',
+                           d.NAME, str(out))
         # Set relevant sysctls
         for opt, val in self.config.sysctl:
             self._old_sysctl[opt] = self._set_sysctl(opt, val)

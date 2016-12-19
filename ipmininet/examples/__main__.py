@@ -8,13 +8,16 @@ from ipmininet.cli import IPCLI
 from .simple_ospf_network import SimpleOSPFNet
 from .simple_bgp_network import SimpleBGPTopo
 from .bgp_decision_process import BGPDecisionProcess
+from .iptables import IPTablesTopo
+
 
 from mininet.log import lg, LEVELS
 
 TOPOS = {
          'simple_ospf_network': SimpleOSPFNet,
          'simple_bgp_network': SimpleBGPTopo,
-         'bgp_decision_process': BGPDecisionProcess
+         'bgp_decision_process': BGPDecisionProcess,
+         'iptables': IPTablesTopo
         }
 
 
@@ -38,8 +41,11 @@ if __name__ == '__main__':
         ipmininet.DEBUG_FLAG = True
     kwargs = {}
     for arg in args.args.strip(' \r\t\n').split(','):
+        arg = arg.strip(' \r\t\n')
+        if not arg:
+            continue
         try:
-            k, v = arg.strip(' \r\t\n').split('=')
+            k, v = arg.split('=')
             kwargs[k] = v
         except ValueError:
             lg.error('Ignoring args:', arg)
