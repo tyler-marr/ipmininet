@@ -334,7 +334,9 @@ class BroadcastDomain(object):
         self.net = None
         self._allocated_v4 = 1  # We need to skip subnet address
         self.net6 = None
-        self._allocated_v6 = 0  # We can use the full address space
+        # self._allocated_v6 = 0  # We can use the full address space
+        self._allocated_v6 = 1  # FIXME null-addresses are routed directly
+        # to the routers loopback .. Might be a bug in the netns code.
         if interfaces:
             if not isinstance(interfaces, list):
                 interfaces = [interfaces]
