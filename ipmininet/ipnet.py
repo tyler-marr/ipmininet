@@ -193,6 +193,10 @@ class IPNet(Mininet):
                 self.broadcast_domains.append(BroadcastDomain(itf))
             except KeyError:
                 log.error('!!! Node', n, 'not found!\n')
+        try:
+            self.topo.post_build(self)
+        except AttributeError as e:
+            log.error('*** Skipping post_build():', str(e), '\n')
 
     def _allocate_IPs(self):
         """Allocate IP addresses on every interface in every broadcast

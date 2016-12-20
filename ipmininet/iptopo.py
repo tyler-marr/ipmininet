@@ -23,6 +23,12 @@ class IPTopo(Topo):
                          'overlay have failed!\n')
         super(IPTopo, self).build(*args, **kwargs)
 
+    def post_build(self, net):
+        """A method that will be invoced once the topology has been fully built
+        and before it is started.
+
+        :param net: The freshly built (Mininet) network"""
+
     def isNodeType(self, n, x):
         """Return wether node n has a key x set to True
 
