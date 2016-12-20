@@ -89,7 +89,7 @@ class OSPF(QuaggaDaemon):
         :param cost: metric for interface
         :param priority: priority for the interface, used for DR election
         :param redistribute: set of OSPFRedistributedRoute sources"""
-        defaults.dead_int = 3
+        defaults.dead_int = 'minimal hello-multiplier 5'
         defaults.hello_int = 1
         defaults.priority = 10
         defaults.redistribute = ()
