@@ -74,9 +74,9 @@ class Zebra(QuaggaDaemon):
                              from the ones already included by route_maps
         :param route_maps: The set of RouteMap to create
         :param static_routes: The set of StaticRoute to create"""
-        defaults.access_lists = ()
-        defaults.route_maps = ()
-        defaults.static_routes = ()
+        defaults.access_lists = []
+        defaults.route_maps = []
+        defaults.static_routes = []
         super(Zebra, self).set_defaults(defaults)
 
     def has_started(self):

@@ -92,7 +92,7 @@ class OSPF(QuaggaDaemon):
         defaults.dead_int = 'minimal hello-multiplier 5'
         defaults.hello_int = 1
         defaults.priority = 10
-        defaults.redistribute = ()
+        defaults.redistribute = []
         super(OSPF, self).set_defaults(defaults)
 
     def is_active_interface(self, itf):

@@ -32,7 +32,7 @@ class IPTables(Daemon):
         """:param rules: The (ordered) list of iptables rules that should be
                          executed. If a rule is an iterable of strings,
                          these will be joined using a space."""
-        defaults.rules = ()
+        defaults.rules = []
         super(IPTables, self).set_defaults(defaults)
 
     def build(self):
