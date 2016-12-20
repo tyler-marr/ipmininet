@@ -9,6 +9,7 @@ from .simple_ospf_network import SimpleOSPFNet
 from .simple_bgp_network import SimpleBGPTopo
 from .bgp_decision_process import BGPDecisionProcess
 from .iptables import IPTablesTopo
+from .gre import GRETopo
 
 
 from mininet.log import lg, LEVELS
@@ -17,7 +18,8 @@ TOPOS = {
          'simple_ospf_network': SimpleOSPFNet,
          'simple_bgp_network': SimpleBGPTopo,
          'bgp_decision_process': BGPDecisionProcess,
-         'iptables': IPTablesTopo
+         'iptables': IPTablesTopo,
+         'gre': GRETopo
         }
 
 

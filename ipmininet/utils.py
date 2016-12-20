@@ -65,7 +65,7 @@ class L3Router(object):
         (in the Mininet meaning: an intf with an associated node)"""
         try:
             return isinstance(itf.node, L3Router)
-        finally:  # Attribute error, ...
+        except AttributeError:
             return False
 
 

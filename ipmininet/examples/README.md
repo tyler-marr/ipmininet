@@ -71,6 +71,7 @@ once BGP has converged:
    - net > as2r3 ip route show 1.2.3.0/24
    - [noecho as2r3] telnet localhost bgpd > password is zebra > enable > show ip bgp 1.2.3.0/24
 
+
 ## IPTables
 
 _topo name_ : iptables
@@ -85,3 +86,18 @@ inbound traffic (the INPUT chains in ip(6)tables):
 You can test this by trying to ping(6) both routers, use nc to (try to)
 exchange data over TCP, or [tracebox](www.tracebox.org) to send a crafted TCP
 packet not part of an already established session.
+
+
+## GRETopo
+
+_topo name_ : gre
+_args_ : n/a
+
+This network spawns routers in a line, with two hosts attached on the ends.
+A GRE Tunnel for prefix 10.0.1.0/24 is established with the two hosts (h1
+having 10.0.1.1 assigned and h2 10.0.1.2).
+
+Example tests:
+* Verify connectivity, normally: h1 ping h2, over the tunnel: h1 ping 10.0.1.2
+* h1 traceroute h2, h1 traceroute 10.0.1.2, should show two different routes,
+  with the second one hiding the intermediate routers.

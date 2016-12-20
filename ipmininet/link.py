@@ -303,3 +303,47 @@ class PhysicalInterface(IPIntf):
         v4.extend(ip for ip in v6 if not ip.is_link_local)
         # Apply saved addresses
         self.setIP(v4)
+
+
+class GRETunnel(object):
+    """The GRETunnel class, which enables to create a GRE
+    Tunnel in a network linking two existing interfaces.
+
+    Currently, these tunnels only define stretched IP subnets.
+
+    The instantiation of these tunnels should happen
+      *after* the network has been built
+      *before* the network has been started.
+    You can leverage the IPTopo.post_build method to do it."""
+    # TODO add the created tunnel interfaces to the list of interfaces
+    # known by the nodes (e.g. so they could be auto-detected-advertized in
+    # the routing protocols)
+
+    def __init__(self, if1, if2, if1address, if2address):
+        """:param if1: The first interface of the tunnel
+        :param if2: The second interface of the tunnel
+        :param if1address: The ip_interface address for if1
+        :param if2address: The ip_interface address for if2."""
+        self.if1, self.if2 = if1, if2
+        self.ip1, self.ip2 = ip_interface(if1address), ip_interface(if2address)
+        self.gre1, self.gre2 = self._gre_name(if1), self._gre_name(if2)
+        self.setup_tunnel()
+
+    def setup_tunnel(self):
+        self._add_tunnel(self.if1, self.if2, self.gre1, self.ip1)
+        self._add_tunnel(self.if2, self.if1, self.gre2, self.ip2)
+
+    @staticmethod
+    def _gre_name(x):
+        return 'gre-%s' % x
+
+    @staticmethod
+    def _add_tunnel(if_local, if_remote, name, address, ttl=255):
+        log.debug('Creating GRE tunnel named', name, ', for subnet',
+                  str(address), 'from', if_local, '[', if_local.ip, '] to',
+                  if_remote, '[', if_remote.ip, ']')
+        cmd = if_local.node.cmd
+        cmd('ip', 'tunnel', 'add', name, 'mode', 'gre', 'remote', if_remote.ip,
+            'local', if_local.ip, 'ttl', str(ttl))
+        cmd('ip', 'link', 'set', name, 'up')
+        cmd('ip', 'address', 'add', 'dev', name, address)
