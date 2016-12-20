@@ -319,7 +319,8 @@ class GRETunnel(object):
     # known by the nodes (e.g. so they could be auto-detected-advertized in
     # the routing protocols)
 
-    def __init__(self, if1, if2, if1address, if2address, bidirectional=True):
+    def __init__(self, if1, if2, if1address, if2address=None,
+                 bidirectional=True):
         """:param if1: The first interface of the tunnel
         :param if2: The second interface of the tunnel
         :param if1address: The ip_interface address for if1
@@ -330,8 +331,9 @@ class GRETunnel(object):
                               tunnel is not established, the kernel will drop
                               by defualt the encapsualted packets."""
         self.if1, self.if2 = if1, if2
-        self.ip1, self.ip2 = ip_interface(if1address), ip_interface(if2address)
-        self.gre1, self.gre2 = self._gre_name(if1), self._gre_name(if2)
+        self.ip1, self.gre1 = ip_interface(if1address), self._gre_name(if1)
+        if bidirectional:
+            self.ip2, self.gre2 = ip_interface(if2address), self._gre_name(if2)
         self.bidirectional = bidirectional
         self.setup_tunnel()
 
