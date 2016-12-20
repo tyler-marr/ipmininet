@@ -319,19 +319,26 @@ class GRETunnel(object):
     # known by the nodes (e.g. so they could be auto-detected-advertized in
     # the routing protocols)
 
-    def __init__(self, if1, if2, if1address, if2address):
+    def __init__(self, if1, if2, if1address, if2address, bidirectional=True):
         """:param if1: The first interface of the tunnel
         :param if2: The second interface of the tunnel
         :param if1address: The ip_interface address for if1
-        :param if2address: The ip_interface address for if2."""
+        :param if2address: The ip_interface address for if2
+        :param bidirectional: Whether both end of the tunnel should be
+                              established or not. GRE is stateless so there is
+                              no handshake per-say, however if one end of the
+                              tunnel is not established, the kernel will drop
+                              by defualt the encapsualted packets."""
         self.if1, self.if2 = if1, if2
         self.ip1, self.ip2 = ip_interface(if1address), ip_interface(if2address)
         self.gre1, self.gre2 = self._gre_name(if1), self._gre_name(if2)
+        self.bidirectional = bidirectional
         self.setup_tunnel()
 
     def setup_tunnel(self):
         self._add_tunnel(self.if1, self.if2, self.gre1, self.ip1)
-        self._add_tunnel(self.if2, self.if1, self.gre2, self.ip2)
+        if self.bidirectional:
+            self._add_tunnel(self.if2, self.if1, self.gre2, self.ip2)
 
     @staticmethod
     def _gre_name(x):
