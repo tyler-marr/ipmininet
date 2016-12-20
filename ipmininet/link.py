@@ -356,3 +356,12 @@ class GRETunnel(object):
             'local', if_local.ip, 'ttl', str(ttl))
         cmd('ip', 'link', 'set', name, 'up')
         cmd('ip', 'address', 'add', 'dev', name, address)
+
+    def cleanup(self):
+        self._del_tunnel(self.if1, self.gre1)
+        if self.bidirectional:
+            self._del_tunnel(self.if1, self.gre1)
+
+    @staticmethod
+    def _del_tunnel(if_local, name):
+        if_local.cmd('ip', 'tunnel', 'delete', name)
