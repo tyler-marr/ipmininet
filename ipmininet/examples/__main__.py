@@ -10,6 +10,7 @@ from .simple_bgp_network import SimpleBGPTopo
 from .bgp_decision_process import BGPDecisionProcess
 from .iptables import IPTablesTopo
 from .gre import GRETopo
+from .sshd import SSHTopo
 
 
 from mininet.log import lg, LEVELS
@@ -19,7 +20,8 @@ TOPOS = {
          'simple_bgp_network': SimpleBGPTopo,
          'bgp_decision_process': BGPDecisionProcess,
          'iptables': IPTablesTopo,
-         'gre': GRETopo
+         'gre': GRETopo,
+         'ssh': SSHTopo
         }
 
 

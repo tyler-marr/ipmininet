@@ -101,3 +101,17 @@ Example tests:
 * Verify connectivity, normally: h1 ping h2, over the tunnel: h1 ping 10.0.1.2
 * h1 traceroute h2, h1 traceroute 10.0.1.2, should show two different routes,
   with the second one hiding the intermediate routers.
+
+## SSHd
+
+_topo name_ : ssh
+_args_ : n/a
+
+This network spawns two routers with an ssh daemon, an a key that is renewed at
+each run.
+
+You can try to connect by reusing the per-router ssh config, e.g.:
+
+```bash
+r1 ssh -o IdentityFile=/tmp/__ipmininet_temp_key r2
+```
