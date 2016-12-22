@@ -143,5 +143,6 @@ class TopologyDB(object):
         """Register an router
 
         :param n: Router instance"""
-        self._add_node(n, {'type': 'router',
-                           'routerid': n.id})
+        self._add_node(n, {'type': 'router',})
+                           #FIXME make routerid global accross all daemons
+                           #'routerid': n.id})
