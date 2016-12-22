@@ -58,9 +58,10 @@ class Rule(object):
         """:param args: the rule members, which will joined bt a whitespace
         :param table: Specify the table in which the rule should be installed.
                       Defaults to filter."""
-        self.args = args
+        self.args = list(args)
         self.table = kw.get('table', 'filter')
         super(Rule, self).__init__()
 
     def __str__(self):
         return ' '.join(self.args)
+    __repr__ = __str__

@@ -114,7 +114,8 @@ class TopologyDB(object):
             self.add_router(r)
 
     def _add_node(self, n, props):
-        itfs = props['interfaces'] = realIntfList(n)
+        itfs = realIntfList(n)
+        props['interfaces'] = [itf.name for itf in itfs]
         for itf in itfs:
             nh = otherIntf(itf)
             itf_props = {

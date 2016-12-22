@@ -332,15 +332,16 @@ class GRETunnel(object):
                               by defualt the encapsualted packets."""
         self.if1, self.if2 = if1, if2
         self.ip1, self.gre1 = ip_interface(if1address), self._gre_name(if1)
-        if bidirectional:
-            self.ip2, self.gre2 = ip_interface(if2address), self._gre_name(if2)
+        self.ip2, self.gre2 = ip_interface(if2address), self._gre_name(if2)
         self.bidirectional = bidirectional
         self.setup_tunnel()
 
     def setup_tunnel(self):
-        self._add_tunnel(self.if1, self.if2, self.gre1, self.ip1)
+        self._add_tunnel(self.if1, self.if2, self.gre1,
+                         self.ip1.with_prefixlen)
         if self.bidirectional:
-            self._add_tunnel(self.if2, self.if1, self.gre2, self.ip2)
+            self._add_tunnel(self.if2, self.if1, self.gre2,
+                             self.ip2.with_prefixlen)
 
     @staticmethod
     def _gre_name(x):
