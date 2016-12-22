@@ -52,7 +52,7 @@ class TopologyDB(object):
             return self._network[x]
         except KeyError:
             raise ValueError('No node named %s in the network' % x)
-    node = _node
+    __getitem__ = node = _node
 
     def _interface(self, x, y):
         try:
