@@ -52,6 +52,7 @@ class TopologyDB(object):
             return self._network[x]
         except KeyError:
             raise ValueError('No node named %s in the network' % x)
+    node = _node
 
     def _interface(self, x, y):
         try:
@@ -66,6 +67,10 @@ class TopologyDB(object):
         :param y: the node on the other side of the link
         :return: ip_interface-like object"""
         return ip_interface(self._interface(x, y)['ip'])
+
+    def interfaces(self, x):
+        """Return the list of interface names of node x"""
+        return self._node(x)['interfaces']
 
     def interface_bandwidth(self, x, y):
         """Return the bandwidth capacity of the interface on node x
@@ -109,7 +114,8 @@ class TopologyDB(object):
             self.add_router(r)
 
     def _add_node(self, n, props):
-        for itf in realIntfList(n):
+        itfs = props['interfaces'] = realIntfList(n)
+        for itf in itfs:
             nh = otherIntf(itf)
             itf_props = {
                 'ip': '%s/%s' % (itf.ip, itf.prefixLen),
