@@ -2,7 +2,7 @@
 This modules will auto-generate all needed configuration properties if
 unspecified by the user"""
 import math
-from operator import attrgetter
+from operator import attrgetter, methodcaller
 
 from ipaddress import ip_network, ip_interface
 
@@ -107,13 +107,19 @@ class IPNet(Mininet):
 
     def addLink(self, node1, node2,
                 igp_metric=None, igp_area=None, igp_passive=False,
+                v4_width=1, v6_width=1,
                 *args, **params):
         """Register a link with additional properties
 
         :param igp_metric: the associated igp metric for this link
         :param igp_area: the associated igp area for this link
         :param igp_passive: whether IGP should create adjacencies over this
-                            link or not"""
+                            link or not
+        :param v4_width: the number of IPv4 addresses to allocate on the
+                         interfaces
+        :param v6_width: the number of IPv6 addresses to allocate on the
+                         interfaces
+        """
         # Handles defaults
         if not igp_metric:
             igp_metric = self.igp_metric
@@ -122,7 +128,9 @@ class IPNet(Mininet):
         # Register all link properties
         props = {'igp_metric': igp_metric,
                  'igp_area': igp_area,
-                 'igp_passive': igp_passive}
+                 'igp_passive': igp_passive,
+                 'v4_width': v4_width,
+                 'v6_width': v6_width}
         # Update interface properties with link properties
         for pstr in ('params1', 'params2'):
             try:
@@ -210,30 +218,36 @@ class IPNet(Mininet):
         log.info("*** Allocating IPv4 addresses\n")
         self._allocate_subnets(self._unallocated_ipbase,
                                self.broadcast_domains,
+                               domainlen='len_v4',
                                net_key='net',
                                size_key='max_v4prefixlen',
                                max_prefixlen=self.max_v4_prefixlen)
         for domain in self.broadcast_domains:
             for intf in domain:
-                ip = domain.next_ipv4()
-                intf.setIP(ip)
-                self._ip_allocs[ip.with_prefixlen] = intf.node
+                ips = tuple(domain.next_ipv4()
+                            for _ in xrange(intf.interface_width[0]))
+                intf.setIP(ips)
+                for ip in ips:
+                    self._ip_allocs[ip.with_prefixlen] = intf.node
 
     def _allocate_ipv6(self):
         log.info("*** Allocating IPv6 addresses\n")
         self._allocate_subnets(self._unallocated_ip6base,
                                self.broadcast_domains,
+                               domainlen='len_v6',
                                net_key='net6',
                                size_key='max_v6prefixlen',
                                max_prefixlen=self.max_v6_prefixlen)
         for domain in self.broadcast_domains:
             for intf in domain:
-                ip = domain.next_ipv6()
-                intf.setIP6(ip)
-                self._ip_allocs[ip.with_prefixlen] = intf.node
+                ips = tuple(domain.next_ipv6()
+                            for _ in xrange(intf.interface_width[1]))
+                intf.setIP6(ips)
+                for ip in ips:
+                    self._ip_allocs[ip.with_prefixlen] = intf.node
 
     @staticmethod
-    def _allocate_subnets(subnets, domains,
+    def _allocate_subnets(subnets, domains, domainlen='len_v4',
                           net_key='net', size_key='max_v4prefixlen',
                           max_prefixlen=24):
         """Allocate subnets to broadcast domains.
@@ -253,6 +267,8 @@ class IPNet(Mininet):
         :param subnets: a list of ip_network of available subnets. This list
                         will be modified to account for the new allocations.
         :param domains: a list of BroadcastDomain
+        :param domainlen: The name of the method used to retrieve the length
+                          of the broadcast domain (address count)
         :param net_key: the key to use to set the allocated subnet in the
                         broadcast domain.
         :param size_key: the key to use to retrieve the maximal prefix length
@@ -260,7 +276,8 @@ class IPNet(Mininet):
         :param max_prefixlen: The maximal prefixlen that can be allocated,
                                 e.g. to not allocate /126 for IPv6 P2P links
         :return: iterator of (domain, subnet)"""
-        domains.sort(key=len, reverse=True)
+        _domainlen = methodcaller(domainlen)
+        domains.sort(key=_domainlen, reverse=True)
         _prefixlen = attrgetter('prefixlen')
         subnets.sort(key=_prefixlen, reverse=True)
         for d in domains:
@@ -357,9 +374,13 @@ class BroadcastDomain(object):
         """Iterates over all interfaces in this broadcast domain"""
         return iter(self.interfaces)
 
-    def __len__(self):
-        """The number of interfaces in this broadcast domain"""
-        return len(self.interfaces)
+    def len_v4(self):
+        """The number of IPv4 addresses in this broadcast domain"""
+        return sum(map(lambda x: x.interface_width[0], self.interfaces))
+
+    def len_v6(self):
+        """The number of IPv6 addresses in this broadcast domain"""
+        return sum(map(lambda x: x.interface_width[1], self.interfaces))
 
     def explore(self, itfs):
         """Explore a new list of interfaces and add them and their neightbors
@@ -389,13 +410,14 @@ class BroadcastDomain(object):
     def max_v4prefixlen(self):
         """Return the maximal IPv4 prefix suitable for this domain"""
         # IPv4 reserves 2 addresses for broadcast/subnet addresses
-        return (32 - math.ceil(math.log(2 + len(self.interfaces), 2)))
+        return (32 - math.ceil(math.log(2 + self.len_v4(), 2)))
 
     @property
     def max_v6prefixlen(self):
         """Return the maximal IPv6 prefix suitable for this domain"""
-        # IPv6 can use whole subnet space for addressing
-        return (128 - math.ceil(math.log(len(self.interfaces), 2)))
+        # IPv6 should use whole subnet space for addressing
+        # But see FIXME in constructor
+        return (128 - math.ceil(math.log(1 + self.len_v6(), 2)))
 
     @property
     def routers(self):

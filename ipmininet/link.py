@@ -45,6 +45,12 @@ class IPIntf(_m.Intf):
         other = otherIntf(self)
         return '-> %s' % (other.name if other else 'n/a')
 
+    @property
+    def interface_width(self):
+        """Return the number of addresses that should be allocated to this
+        interface, per address family"""
+        return self.get('v4_width', 1), self.get('v6_width', 1)
+
     def get(self, key, val):
         """Check for a given key in the interface parameters"""
         return self.params.get(key, val)
