@@ -29,32 +29,30 @@ class SimpleOSPFv3Net(IPTopo):
         # Build backbone
         r1, r2 = self.addRouter_v6('r1'), self.addRouter_v6('r2')
         r3 = self.addRouter_v6('r3')
-        self.addLink(r1, r2, igp_area='0.0.0.0')
-        self.addLink(r1, r3, igp_metric=5, igp_area='0.0.0.0')
-        self.addLink(r3, r2, igp_area='0.0.0.0')
+        self.addLink(r1, r2)
+        self.addLink(r1, r3, igp_metric=5)
+        self.addLink(r3, r2)
         for r in (r1, r2, r3):
             for i in xrange(HOSTS_PER_ROUTER):
-                self.addLink(r, self.addHost('h%s%s' % (i, r)), igp_area='0.0.0.0')
+                self.addLink(r, self.addHost('h%s%s' % (i, r)))
 
         # Area 1.1.1.1
         r4, r5 = self.addRouter_v6('r4'), self.addRouter_v6('r5')
-        self.addLink(r2, r5, igp_area='0.0.0.0')
-        self.addLink(r2, r4, igp_area='0.0.0.0')
-        self.addLink(r4, r5, igp_area='0.0.0.0', igp_metric=10)
+        self.addLink(r2, r5)
+        self.addLink(r2, r4)
+        self.addLink(r4, r5, igp_metric=10)
         for r in (r4, r5):
             for i in xrange(HOSTS_PER_ROUTER):
-                self.addLink(r, self.addHost('h%s%s' % (i, r)),
-                             igp_area='0.0.0.0')
+                self.addLink(r, self.addHost('h%s%s' % (i, r)))
 
         # Area 2.2.2.2
         r6, r7 = self.addRouter_v6('r6'), self.addRouter_v6('r7')
-        self.addLink(r3, r6, igp_area='0.0.0.0')
-        self.addLink(r3, r7, igp_area='0.0.0.0', igp_metric=5)
-        self.addLink(r6, r7, igp_area='0.0.0.0')
+        self.addLink(r3, r6)
+        self.addLink(r3, r7, igp_metric=5)
+        self.addLink(r6, r7)
         for r in (r6, r7):
             for i in xrange(HOSTS_PER_ROUTER):
-                self.addLink(r, self.addHost('h%s%s' % (i, r)),
-                             igp_area='0.0.0.0')
+                self.addLink(r, self.addHost('h%s%s' % (i, r)))
 
     def addRouter_v6(self, name):
         return self.addRouter(name, use_v4=False, use_v6=True)
