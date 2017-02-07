@@ -13,6 +13,7 @@ class OSPF6(OSPF):
     It advertizes one network per interface (the primary one), and set
     interfaces not facing another L3Router to passive"""
     NAME = 'ospf6d'
+    DEAD_INT = 3
     last_routerid = ip_interface("0.0.0.1")
     routerids_taken = []
 
@@ -22,7 +23,7 @@ class OSPF6(OSPF):
     def _build_interfaces(self, interfaces):
         """Return the list of OSPF6 interface properties from the list of
         active interfaces"""
-        return [ConfigDict(description=i.describe,
+        conf = [ConfigDict(description=i.describe,
                            name=i.name,
                            # Is the interface between two routers?
                            active=self.is_active_interface(i),
@@ -38,6 +39,13 @@ class OSPF6(OSPF):
                            instance_id=i.get('instance_id', 0),
                            area=i.igp_area)
                 for i in interfaces]
+        # 'minimal hello-multiplier x' is not implemented in ospf6d
+        for dic in conf:
+            try:
+                int(dic["dead_int"])
+            except ValueError:
+                dic["dead_int"] = self.DEAD_INT
+        return conf
 
     def set_defaults(self, defaults):
         """:param dead_int: Dead interval timer
@@ -48,6 +56,8 @@ class OSPF6(OSPF):
         :param instance_id: the number of the attached OSPF instance"""
         defaults.instance_id = 0
         super(OSPF6, self).set_defaults(defaults)
+        # 'minimal hello-multiplier x' is not implemented in ospf6d
+        defaults.dead_int = self.DEAD_INT
 
     @property
     def routerid(self):
