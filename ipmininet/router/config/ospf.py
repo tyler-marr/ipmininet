@@ -61,8 +61,9 @@ class OSPF(QuaggaDaemon):
     def _build_networks(self, interfaces):
         """Return the list of OSPF networks to advertize from the list of
         active OSPF interfaces"""
+        # Check that we have at least one IPv4 network on that interface ...
         return [OSPFNetwork(domain=ip_interface('%s/%s' % (i.ip, i.prefixLen)),
-                            area=i.igp_area) for i in interfaces]
+                            area=i.igp_area) for i in interfaces if i.ip]
 
     def _build_interfaces(self, interfaces):
         """Return the list of OSPF interface properties from the list of
@@ -88,10 +89,10 @@ class OSPF(QuaggaDaemon):
         :param cost: metric for interface
         :param priority: priority for the interface, used for DR election
         :param redistribute: set of OSPFRedistributedRoute sources"""
-        defaults.dead_int = 3
+        defaults.dead_int = 'minimal hello-multiplier 5'
         defaults.hello_int = 1
         defaults.priority = 10
-        defaults.redistribute = ()
+        defaults.redistribute = []
         super(OSPF, self).set_defaults(defaults)
 
     def is_active_interface(self, itf):

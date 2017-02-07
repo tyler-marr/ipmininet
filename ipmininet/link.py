@@ -2,6 +2,7 @@
 enhance the Intf class from Mininet, and then define sane defaults for the link
 classes and a new TCIntf base."""
 from itertools import chain
+import subprocess
 from ipaddress import ip_interface, IPv4Interface, IPv6Interface
 
 from . import OSPF_DEFAULT_AREA, MIN_IGP_METRIC
@@ -10,7 +11,7 @@ from .utils import otherIntf, is_container
 # Apparently there is a circular import between mininet.link and mininet.node,
 # break it by importing node first
 # FIXME wait for upstream PR to be accepted ... then remove the first include
-import mininet.node as _
+import mininet.node # noqa
 import mininet.link as _m
 from mininet.log import lg as log
 
@@ -45,6 +46,12 @@ class IPIntf(_m.Intf):
         """Return a string describing the interface facing this one"""
         other = otherIntf(self)
         return '-> %s' % (other.name if other else 'n/a')
+
+    @property
+    def interface_width(self):
+        """Return the number of addresses that should be allocated to this
+        interface, per address family"""
+        return self.get('v4_width', 1), self.get('v6_width', 1)
 
     def get(self, key, val):
         """Check for a given key in the interface parameters"""
@@ -174,14 +181,8 @@ class IPIntf(_m.Intf):
 
     def _refresh_addresses(self):
         """Request and parse the addresses of this interface"""
-        self.mac = None
-        self.addresses = {4: [], 6: []}
-        addrstr = self.cmd('ip', 'address', 'show', 'dev', self.name)
-        if not addrstr:
-            raise RuntimeError('Failed to run ip address!')
-        self.mac, v4, v6 = _parse_addresses(addrstr)
-        self.addresses[4] = sorted(v4, cmp=address_comparator, reverse=True)
-        self.addresses[6] = sorted(v6, cmp=address_comparator, reverse=True)
+        self.mac, self.addresses[4], self.addresses[6] = _addresses_of(
+                                                               self.name, self)
 
     def updateIP(self):
         self._refresh_addresses()
@@ -198,6 +199,24 @@ class IPIntf(_m.Intf):
     def updateAddr(self):
         self._refresh_addresses()
         return self.ip, self.mac
+
+
+def _addresses_of(devname, node=None):
+    """Return the addresses of a named interface"""
+    cmdline = ['ip', 'address', 'show', 'dev', devname]
+    try:
+        addrstr = node.cmd(*cmdline)
+    except AttributeError:
+        addrstr = subprocess.check_output(cmdline)
+    except (OSError, subprocess.CalledProcessError):
+        addrstr = None
+    if not addrstr:
+        log.warning('Failed to run ip address!')
+        return None, (), ()
+    mac, v4, v6 = _parse_addresses(addrstr)
+    return (mac,
+            sorted(v4, cmp=address_comparator, reverse=True),
+            sorted(v6, cmp=address_comparator, reverse=True))
 
 
 def _parse_addresses(out):
@@ -263,3 +282,95 @@ def address_comparator(a, b):
     if a > b:
         return 1
     return -1 if b > a else 0
+
+
+class PhysicalInterface(IPIntf):
+    """An interface that will wrap around an existing (physical) interface,
+    and try to preserve its addresses.
+    The interface must be present in the root namespace."""
+
+    def __init__(self, name, *args, **kw):
+        try:
+            node = kw['node']
+        except KeyError:
+            raise ValueError('PhysicalInterface() requires a node= argument')
+        # Save the addresses from the root namespace
+        try:
+            _, v4, v6 = _addresses_of(name, node=None)
+        except (subprocess.CalledProcessError, OSError):
+            log.error('Cannot retrieve the addresses of interface', name, '!')
+            raise ValueError('Unknown physical interface name')
+        if node.inNamespace:
+            # cfr man ip-link; some devices cannot change of net ns
+            if 'netns-local: on' in subprocess.check_output(
+                    ('ethtool', '-k', name)):
+                log.error('Cannot move interface', name, 'into another network'
+                          ' namespace!')
+        super(PhysicalInterface, self).__init__(name, *args, **kw)
+        # Exclude link locals ...
+        v4.extend(ip for ip in v6 if not ip.is_link_local)
+        # Apply saved addresses
+        self.setIP(v4)
+
+
+class GRETunnel(object):
+    """The GRETunnel class, which enables to create a GRE
+    Tunnel in a network linking two existing interfaces.
+
+    Currently, these tunnels only define stretched IP subnets.
+
+    The instantiation of these tunnels should happen
+      *after* the network has been built
+      *before* the network has been started.
+    You can leverage the IPTopo.post_build method to do it."""
+    # TODO add the created tunnel interfaces to the list of interfaces
+    # known by the nodes (e.g. so they could be auto-detected-advertized in
+    # the routing protocols)
+
+    def __init__(self, if1, if2, if1address, if2address=None,
+                 bidirectional=True):
+        """:param if1: The first interface of the tunnel
+        :param if2: The second interface of the tunnel
+        :param if1address: The ip_interface address for if1
+        :param if2address: The ip_interface address for if2
+        :param bidirectional: Whether both end of the tunnel should be
+                              established or not. GRE is stateless so there is
+                              no handshake per-say, however if one end of the
+                              tunnel is not established, the kernel will drop
+                              by defualt the encapsualted packets."""
+        self.if1, self.if2 = if1, if2
+        self.ip1, self.gre1 = ip_interface(if1address), self._gre_name(if1)
+        self.ip2, self.gre2 = ip_interface(if2address), self._gre_name(if2)
+        self.bidirectional = bidirectional
+        self.setup_tunnel()
+
+    def setup_tunnel(self):
+        self._add_tunnel(self.if1, self.if2, self.gre1,
+                         self.ip1.with_prefixlen)
+        if self.bidirectional:
+            self._add_tunnel(self.if2, self.if1, self.gre2,
+                             self.ip2.with_prefixlen)
+
+    @staticmethod
+    def _gre_name(x):
+        return 'gre-%s' % x
+
+    @staticmethod
+    def _add_tunnel(if_local, if_remote, name, address, ttl=255):
+        log.debug('Creating GRE tunnel named', name, ', for subnet',
+                  str(address), 'from', if_local, '[', if_local.ip, '] to',
+                  if_remote, '[', if_remote.ip, ']')
+        cmd = if_local.node.cmd
+        cmd('ip', 'tunnel', 'add', name, 'mode', 'gre', 'remote', if_remote.ip,
+            'local', if_local.ip, 'ttl', str(ttl))
+        cmd('ip', 'link', 'set', name, 'up')
+        cmd('ip', 'address', 'add', 'dev', name, address)
+
+    def cleanup(self):
+        self._del_tunnel(self.if1, self.gre1)
+        if self.bidirectional:
+            self._del_tunnel(self.if1, self.gre1)
+
+    @staticmethod
+    def _del_tunnel(if_local, name):
+        if_local.cmd('ip', 'tunnel', 'delete', name)

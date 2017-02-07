@@ -45,7 +45,8 @@ Managment Network (OOB)|       |              |        |          |             
         self.addLink(r3, r2)
         for r in (r1, r2, r3):
             for i in xrange(HOSTS_PER_ROUTER):
-                self.addLink(r, self.addHost('h%s%s' % (i, r)))
+                self.addLink(r, self.addHost('h%s%s' % (i, r)),
+                             params2={'v4_width': 5})
 
         # Area 1.1.1.1
         r4, r5 = self.addRouter('r4'), self.addRouter('r5')

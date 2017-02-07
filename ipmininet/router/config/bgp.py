@@ -104,7 +104,7 @@ class BGP(QuaggaDaemon):
 
     def set_defaults(self, defaults):
         """:param address_families: The set of AddressFamily to use"""
-        defaults.address_families = ()
+        defaults.address_families = []
         super(BGP, self).set_defaults(defaults)
 
     def _build_neighbors(self):

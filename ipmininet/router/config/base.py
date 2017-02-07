@@ -177,7 +177,8 @@ class Daemon(object):
             log.error('Couldn''t render a config file(',
                       self.template_filename, ')')
             log.error(mako.exceptions.text_error_template().render())
-            raise ValueError('Cannot render a configuration')
+            raise ValueError('Cannot render a configuration [%s: %s]' % (
+                self._node.name, self.NAME))
 
     def write(self, cfg):
         """Write down the configuration for this daemon

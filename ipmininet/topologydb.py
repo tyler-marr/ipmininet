@@ -52,6 +52,7 @@ class TopologyDB(object):
             return self._network[x]
         except KeyError:
             raise ValueError('No node named %s in the network' % x)
+    __getitem__ = node = _node
 
     def _interface(self, x, y):
         try:
@@ -66,6 +67,10 @@ class TopologyDB(object):
         :param y: the node on the other side of the link
         :return: ip_interface-like object"""
         return ip_interface(self._interface(x, y)['ip'])
+
+    def interfaces(self, x):
+        """Return the list of interface names of node x"""
+        return self._node(x)['interfaces']
 
     def interface_bandwidth(self, x, y):
         """Return the bandwidth capacity of the interface on node x
@@ -109,13 +114,18 @@ class TopologyDB(object):
             self.add_router(r)
 
     def _add_node(self, n, props):
-        for itf in realIntfList(n):
+        itfs = realIntfList(n)
+        props['interfaces'] = [itf.name for itf in itfs]
+        for itf in itfs:
             nh = otherIntf(itf)
-            props[nh.node.name] = {
+            itf_props = {
                 'ip': '%s/%s' % (itf.ip, itf.prefixLen),
                 'name': itf.name,
                 'bw': itf.params.get('bw', -1)
             }
+            if nh:
+                props[nh.node.name] = itf_props
+            props[itf.name] = itf_props
         self._network[n.name] = props
 
     def add_host(self, n):
@@ -134,5 +144,6 @@ class TopologyDB(object):
         """Register an router
 
         :param n: Router instance"""
-        self._add_node(n, {'type': 'router',
-                           'routerid': n.id})
+        self._add_node(n, {'type': 'router',})
+                           #FIXME make routerid global accross all daemons
+                           #'routerid': n.id})

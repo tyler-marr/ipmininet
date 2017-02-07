@@ -1,4 +1,4 @@
-# IPMininet
+# IPMininet [![Pypi Version](https://img.shields.io/pypi/v/ipmininet.svg)](https://pypi.python.org/pypi/ipmininet/)
 
 This is a python library, extending [Mininet](http://mininet.org), in order
 to support emulation of (complex) IP networks. As such it provides new classes,

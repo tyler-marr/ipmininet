@@ -11,6 +11,7 @@ class IPTopo(Topo):
 
     def __init__(self, *args, **kwargs):
         self.overlays = []
+        self.phys_interface_capture = {}
         super(IPTopo, self).__init__(*args, **kwargs)
 
     def build(self, *args, **kwargs):
@@ -21,6 +22,12 @@ class IPTopo(Topo):
                 lg.error('Consistency checks for', str(o),
                          'overlay have failed!\n')
         super(IPTopo, self).build(*args, **kwargs)
+
+    def post_build(self, net):
+        """A method that will be invoced once the topology has been fully built
+        and before it is started.
+
+        :param net: The freshly built (Mininet) network"""
 
     def isNodeType(self, n, x):
         """Return wether node n has a key x set to True
@@ -70,6 +77,10 @@ class IPTopo(Topo):
         combination. If not found, set to an instance of default and return
         it"""
         return get_set(self.linkInfo(l), key, default)
+
+    def capture_physical_interface(self, intfname, node):
+        """Adds a pre-existing physical interface to the given node."""
+        self.phys_interface_capture[intfname] = node
 
 
 class Overlay(object):

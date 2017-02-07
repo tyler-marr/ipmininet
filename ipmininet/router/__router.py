@@ -1,10 +1,12 @@
 """This modules defines a L3 router class, with a modulable config system."""
+import sys
 import time
 
 from ipmininet import DEBUG_FLAG
 from ipmininet.utils import L3Router
 from .config import BasicRouterConfig
 
+import mininet.clean
 from mininet.node import Node
 from mininet.log import lg
 
@@ -38,6 +40,11 @@ class ProcessHelper(object):
         self._pid_gen += 1
         self._processes[self._pid_gen] = self.node.popen(*args, **kwargs)
         return self._pid_gen
+
+    def pexec(self, *args, **kw):
+        """Call a command, wait for it to terminate and save stdout, stderr and
+        its return code"""
+        return self.node.pexec(*args, **kw)
 
     def get_process(self, pid):
         """Return a given process handle in this family
@@ -95,12 +102,19 @@ class Router(Node, L3Router):
         # Build the config
         self.config.build()
         # Check them
+        err_code = False
         for d in self.config.daemons:
-            out = self._processes.call(*d.dry_run.split(' '))
-            if out:
-                lg.error('Process', d.NAME, 'reported the following message'
-                         ' when checking the configuration:\n', str(out),
-                         '\n')
+            out, err, code = self._processes.pexec(*d.dry_run.split(' '))
+            err_code = err_code or code
+            if code:
+                lg.error(d.NAME, 'configuration check failed ['
+                         'rcode:', str(code), ']\n'
+                         'stdout:', str(out), '\n'
+                         'stderr:', str(err))
+        if err_code:
+            lg.error('Config checks failed, aborting!')
+            mininet.clean.cleanup()
+            sys.exit(1)
         # Set relevant sysctls
         for opt, val in self.config.sysctl:
             self._old_sysctl[opt] = self._set_sysctl(opt, val)

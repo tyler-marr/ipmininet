@@ -12,6 +12,7 @@ The following sections will detail the topologies.
    - [SimpleOSPFNetwork](#simpleospfnetwork)
    - [SimpleBGPNetwork](#simplebgpnetwork)
    - [BGPDecisionProcess](#bgpdecisionprocess)
+   - [IPTables](#iptables)
 
 ## SimpleOSPFNetwork
 
@@ -48,9 +49,10 @@ _topo name_ : simple_bgp_network
 _args_ : n/a
 
 This networks spawn ASes, exchanging reachability information.
-    - AS1 has one eBGP peering with AS2
-    - AS2 has 2 routers, using iBGP between them, and has two eBGP peering, one with AS1 and one with AS3
-    - AS3 has one eBGP peerin with AS2
+
+   - AS1 has one eBGP peering with AS2
+   - AS2 has 2 routers, using iBGP between them, and has two eBGP peering, one with AS1 and one with AS3
+   - AS3 has one eBGP peerin with AS2
 
 
 ## BGPDecisionProcess
@@ -78,5 +80,51 @@ routes, and compare the routerids of as2r1 and as2r2 to select the path
 
 You can observe this selection by issuing one of the following command sequence
 once BGP has converged:
-    - net > as2r3 ip route show 1.2.3.0/24
-    - [noecho as2r3] telnet localhost bgpd > password is zebra > enable > show ip bgp 1.2.3.0/24
+
+   - net > as2r3 ip route show 1.2.3.0/24
+   - [noecho as2r3] telnet localhost bgpd > password is zebra > enable > show ip bgp 1.2.3.0/24
+
+
+## IPTables
+
+_topo name_ : iptables
+_args_ : n/a
+
+This network spawns two routers, which have custom ACLs set such that their
+inbound traffic (the INPUT chains in ip(6)tables):
+
+  - Can only be ICMP traffic over IPv4
+  - Can only be (properly established) TCP over IPv6
+
+You can test this by trying to ping(6) both routers, use nc to (try to)
+exchange data over TCP, or [tracebox](www.tracebox.org) to send a crafted TCP
+packet not part of an already established session.
+
+
+## GRETopo
+
+_topo name_ : gre
+_args_ : n/a
+
+This network spawns routers in a line, with two hosts attached on the ends.
+A GRE Tunnel for prefix 10.0.1.0/24 is established with the two hosts (h1
+having 10.0.1.1 assigned and h2 10.0.1.2).
+
+Example tests:
+* Verify connectivity, normally: h1 ping h2, over the tunnel: h1 ping 10.0.1.2
+* h1 traceroute h2, h1 traceroute 10.0.1.2, should show two different routes,
+  with the second one hiding the intermediate routers.
+
+## SSHd
+
+_topo name_ : ssh
+_args_ : n/a
+
+This network spawns two routers with an ssh daemon, an a key that is renewed at
+each run.
+
+You can try to connect by reusing the per-router ssh config, e.g.:
+
+```bash
+r1 ssh -o IdentityFile=/tmp/__ipmininet_temp_key r2
+```
