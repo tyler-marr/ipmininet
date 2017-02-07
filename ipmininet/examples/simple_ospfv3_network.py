@@ -1,4 +1,4 @@
-"""This file contains a simple OSPF topology"""
+"""This file contains a simple OSPFv3 topology"""
 
 from ipmininet.iptopo import IPTopo
 
