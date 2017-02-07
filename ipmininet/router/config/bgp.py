@@ -1,12 +1,11 @@
 """Base classes to configure a BGP daemon"""
 import itertools
 
-from ipaddress import ip_network, ip_interface
-
-from .zebra import QuaggaDaemon, Zebra
+from ipaddress import ip_network
 
 from ipmininet.iptopo import Overlay
 from ipmininet.utils import realIntfList
+from .zebra import QuaggaDaemon, Zebra
 
 
 BGP_DEFAULT_PORT = 179
@@ -75,8 +74,6 @@ class BGP(QuaggaDaemon):
     """This class provides the configuration skeletons for BGP routers."""
     NAME = 'bgpd'
     DEPENDS = (Zebra,)
-    last_routerid = ip_interface("0.0.0.1")
-    routerids_taken = []
 
     @property
     def STARTUP_LINE_EXTRA(self):
@@ -87,11 +84,7 @@ class BGP(QuaggaDaemon):
                  *args, **kwargs):
         super(BGP, self).__init__(node=node, *args, **kwargs)
         self.port = port
-        if routerid is None:
-            self.routerid = BGP.next_router_id()
-        else:
-            self.routerid = routerid
-            BGP.routerids_taken.append(ip_interface(routerid))
+        self.routerid = routerid
 
     def build(self):
         cfg = super(BGP, self).build()
@@ -118,14 +111,6 @@ class BGP(QuaggaDaemon):
         for a in af:
             a.neighbors.extend(nei)
         return af
-
-    @classmethod
-    def next_router_id(cls):
-        """Compute the next router ID available"""
-        cls.last_routerid += 1
-        while cls.last_routerid in cls.routerids_taken:
-            cls.last_routerid += 1
-        return cls.last_routerid.with_prefixlen.split("/")[0]
 
 
 class AddressFamily(object):

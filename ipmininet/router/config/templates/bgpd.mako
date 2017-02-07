@@ -12,8 +12,8 @@ debug bgp section
 router bgp ${node.bgpd.asn}
 % if node.bgpd.routerid:
     bgp router-id ${node.bgpd.routerid}
-% elif node.ospfd:
-    bgp router-id ${node.ospfd.router_id}
+% else:
+    bgp router-id ${node.zebra.routerid}
 % endif
     bgp bestpath compare-routerid
 % for n in node.bgpd.neighbors:

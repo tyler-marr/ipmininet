@@ -1,11 +1,10 @@
 """Base classes to configure an OSPF daemon"""
 from ipaddress import ip_interface
 
-from .zebra import QuaggaDaemon, Zebra
-from .utils import ConfigDict
-from ipmininet.utils import otherIntf, L3Router, realIntfList
-from ipmininet.link import address_comparator
 from ipmininet.iptopo import Overlay
+from ipmininet.utils import otherIntf, L3Router, realIntfList
+from .utils import ConfigDict
+from .zebra import QuaggaDaemon, Zebra
 
 
 class OSPFArea(Overlay):
@@ -45,8 +44,9 @@ class OSPF(QuaggaDaemon):
     NAME = 'ospfd'
     DEPENDS = (Zebra,)
 
-    def __init__(self, *args, **kwargs):
-        super(OSPF, self).__init__(*args, **kwargs)
+    def __init__(self, node, routerid=None, *args, **kwargs):
+        super(OSPF, self).__init__(node=node, *args, **kwargs)
+        self.routerid = routerid
 
     def build(self):
         cfg = super(OSPF, self).build()
@@ -98,15 +98,6 @@ class OSPF(QuaggaDaemon):
     def is_active_interface(self, itf):
         """Return whether an interface is active or not for the OSPF daemon"""
         return L3Router.is_l3router_intf(otherIntf(itf))
-
-    @property
-    def routerid(self):
-        """Return the OSPF router-id for this router. It defaults to the
-        most-visible address among this router interfaces."""
-        return str(sorted((ip
-                           for itf in realIntfList(self._node)
-                           for ip in itf.ips()),
-                          cmp=address_comparator).pop().ip)
 
 
 class OSPFNetwork(object):

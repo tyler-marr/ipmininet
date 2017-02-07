@@ -1,10 +1,11 @@
 import os
 
-from ipaddress import ip_network
+from ipaddress import ip_network, ip_interface
 
 from .base import Daemon
 from .utils import ConfigDict
 from ipmininet.utils import realIntfList
+from ipmininet.link import address_comparator
 
 # Zebra actions
 DENY = 'deny'
@@ -55,6 +56,7 @@ class Zebra(QuaggaDaemon):
     # We want zebra to preserve existing routes in the kernel RT (e.g. those
     # set via ip route)
     STARTUP_LINE_EXTRA = '-k'
+    last_routerid = ip_interface("0.0.0.1")
 
     def __init__(self, *args, **kwargs):
         super(Zebra, self).__init__(*args, **kwargs)
@@ -63,6 +65,7 @@ class Zebra(QuaggaDaemon):
         cfg = super(Zebra, self).build()
         # Update with preset defaults
         cfg.update(self.options)
+        cfg.routerid = self.get_routerid()
         # Track interfaces
         cfg.interfaces = (ConfigDict(name=itf.name,
                                      description=itf.describe)
@@ -82,6 +85,59 @@ class Zebra(QuaggaDaemon):
     def has_started(self):
         # We override this such that we wait until we have the API socket
         return os.path.exists(self.zebra_socket)
+
+    @classmethod
+    def incr_last_routerid(cls):
+        cls.last_routerid += 1
+
+    def _equal_routerid(self, n):
+        # Check that the most-visible IPv4 address is not in conflict
+        # with the current router id
+        ip_list = sorted((ip for itf in realIntfList(n)
+                          for ip in itf.ips()),
+                         cmp=address_comparator)
+        if len(ip_list) != 0 \
+                and int(ip_list.pop().ip) == int(self.last_routerid):
+            return True
+
+        # Check that a router id explicitly set
+        # in any other Quagga daemon is not in conflict
+        # with the current router id
+        for d in n.config.daemons:
+            if issubclass(d, QuaggaDaemon) and d != self \
+                    and hasattr(d, "routerid") \
+                    and int(d.routerid) == int(self.last_routerid):
+                return True
+        return False
+
+    def get_routerid(self):
+        """Computes the default router id for Quagga daemons
+        It returns the most-visible IPv4 address among its router interfaces.
+        If no IPv4 addresses exists for its router, it generates a unique router id"""
+        ip_list = sorted((ip for itf in realIntfList(self._node)
+                          for ip in itf.ips()),
+                         cmp=address_comparator)
+        if len(ip_list) == 0:
+
+            to_visit = realIntfList(self._node)
+            # Explore all routers to check that none has the same router id
+            while to_visit:
+                self.incr_last_routerid()
+                visited = set()
+                while to_visit:
+                    i = to_visit.pop()
+                    if i in visited:
+                        continue
+                    visited.add(i)
+                    for n in i.broadcast_domain.routers:
+                        if self._equal_routerid(n.node):
+                            break  # We need to change the router id
+                        to_visit.extend(realIntfList(n.node))
+                to_visit = realIntfList(self._node) if to_visit else []
+            return self.last_routerid.with_prefixlen.split("/")[0]
+        else:
+            id = ip_list.pop().ip
+            return id
 
 
 class AccessListEntry(object):

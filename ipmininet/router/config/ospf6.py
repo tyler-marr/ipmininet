@@ -1,9 +1,5 @@
 """Base classes to configure an OSPF6 daemon"""
 
-from ipaddress import ip_interface
-
-from ipmininet.link import address_comparator
-from ipmininet.utils import realIntfList
 from .ospf import OSPF, OSPFRedistributedRoute
 from .utils import ConfigDict
 
@@ -14,11 +10,6 @@ class OSPF6(OSPF):
     interfaces not facing another L3Router to passive"""
     NAME = 'ospf6d'
     DEAD_INT = 3
-    last_routerid = ip_interface("0.0.0.1")
-    routerids_taken = []
-
-    def __init__(self, *args, **kwargs):
-        super(OSPF6, self).__init__(*args, **kwargs)
 
     def _build_interfaces(self, interfaces):
         """Return the list of OSPF6 interface properties from the list of
@@ -58,24 +49,6 @@ class OSPF6(OSPF):
         super(OSPF6, self).set_defaults(defaults)
         # 'minimal hello-multiplier x' is not implemented in ospf6d
         defaults.dead_int = self.DEAD_INT
-
-    @property
-    def routerid(self):
-        """Return the OSPF6 router-id for this router. It defaults to the
-        most-visible address among this router interfaces. If no IPv4 addresses
-        exists for this router, it generates a unique router-id"""
-        ip_list = sorted((ip for itf in realIntfList(self._node)
-                          for ip in itf.ips()),
-                         cmp=address_comparator)
-        if len(ip_list) == 0:
-            OSPF6.last_routerid += 1
-            while OSPF6.last_routerid in OSPF6.routerids_taken:
-                OSPF6.last_routerid += 1
-            return OSPF6.last_routerid.with_prefixlen.split("/")[0]
-        else:
-            id = ip_list.pop().ip
-            OSPF6.routerids_taken.append(ip_interface(id))
-            return id
 
 
 class OSPF6RedistributedRoute(OSPFRedistributedRoute):
