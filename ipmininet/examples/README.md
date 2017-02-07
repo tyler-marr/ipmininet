@@ -19,7 +19,8 @@ The following sections will detail the topologies.
 _topo name_ : simple_ospf_network
 _args_ : n/a
 
-This network spawn a single AS topology, using OSPF, with variable link metrics.
+This network spawn a single AS topology, using OSPF, with multiple areas and
+variable link metrics.
 From the mininet CLI, access the routers vtysh using
 ```bash
 [noecho rx] telnet localhost [ospfd/zebra]
