@@ -256,7 +256,7 @@ class BasicRouterConfig(RouterConfig):
         d = []
         if node.use_v4:
             d.append(OSPF)
-        elif node.use_v6:
+        if node.use_v6:
             d.append(OSPF6)
         d.extend(additional_daemons)
         super(BasicRouterConfig, self).__init__(node, daemons=d,
