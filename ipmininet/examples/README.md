@@ -129,3 +129,13 @@ You can try to connect by reusing the per-router ssh config, e.g.:
 ```bash
 r1 ssh -o IdentityFile=/tmp/__ipmininet_temp_key r2
 ```
+
+## RouterAdvNetwork
+
+_topo name_ : router_adv_network
+_args_ : n/a
+
+This network spawn a small topology with two hosts and a router.
+One of these hosts uses Router Advertisements to get its IPv6 addresses
+The other one's IP addresses are announced in the Router Advertisements
+as the DNS server's addresses.
