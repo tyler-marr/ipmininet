@@ -119,6 +119,10 @@ class IPNet(Mininet):
                          interfaces
         :param v6_width: the number of IPv6 addresses to allocate on the
                          interfaces
+        :param ra: list of AdvPrefix objects, each one representing an
+                   advertised prefix
+        :param rdnss: list of AdvRDNSS objects, each one representing
+                   an advertised DNS server
         """
         # Handles defaults
         if not igp_metric:

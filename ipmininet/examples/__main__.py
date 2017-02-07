@@ -12,6 +12,7 @@ from .bgp_decision_process import BGPDecisionProcess
 from .iptables import IPTablesTopo
 from .gre import GRETopo
 from .sshd import SSHTopo
+from .router_adv_network import RouterAdvNet
 
 
 from mininet.log import lg, LEVELS
@@ -23,8 +24,13 @@ TOPOS = {
          'bgp_decision_process': BGPDecisionProcess,
          'iptables': IPTablesTopo,
          'gre': GRETopo,
-         'ssh': SSHTopo
+         'ssh': SSHTopo,
+         'router_adv_network': RouterAdvNet
         }
+
+NET_ARGS = {'router_adv_network': {'use_v4': False,
+                                   'use_v6': True,
+                                   'allocate_IPs': False}}
 
 
 def parse_args():
@@ -55,7 +61,7 @@ if __name__ == '__main__':
             kwargs[k] = v
         except ValueError:
             lg.error('Ignoring args:', arg)
-    net = IPNet(topo=TOPOS[args.topo](**kwargs))
+    net = IPNet(topo=TOPOS[args.topo](**kwargs), **NET_ARGS.get(args.topo, {}))
     net.start()
     IPCLI(net)
     net.stop()

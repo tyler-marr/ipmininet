@@ -7,6 +7,34 @@ RA_DEFAULT_PREF = 14400
 DEFAULT_ADV_RDNSS_LIFETIME = 25
 
 
+class AdvPrefix(ConfigDict):
+    """The class representing an advertised prefix in a Router Advertisement"""
+
+    def __init__(self, prefix, valid_lifetime=RA_DEFAULT_VALID,
+                 preferred_lifetime=RA_DEFAULT_PREF):
+        """:param prefix: the IPv6 prefix to advertise
+           :param valid_lifetime: corresponds to the AdvValidLifetime
+                                  in radvd.conf(5) for this prefix
+           :param preferred_lifetime: corresponds to the AdvPreferredLifetime
+                                      in radvd.conf(5) for this prefix"""
+        super(AdvPrefix, self).__init__()
+        self["prefix"] = prefix
+        self["valid_lifetime"] = valid_lifetime
+        self["preferred_lifetime"] = preferred_lifetime
+
+
+class AdvRDNSS(ConfigDict):
+    """The class representing an advertised DNS server in a Router Advertisement"""
+
+    def __init__(self, ip, max_lifetime=DEFAULT_ADV_RDNSS_LIFETIME):
+        """:param ip: the IPv6 address of the DNS server
+           :param max_lifetime: corresponds to the AdvValidLifetime
+                                in radvd.conf(5) for this dns server address"""
+        super(AdvRDNSS, self).__init__()
+        self["ip"] = ip
+        self["max_lifetime"] = max_lifetime
+
+
 class RADVD(Daemon):
     """The class representing the radvd daemon, used for router advertisements"""
 
@@ -18,31 +46,12 @@ class RADVD(Daemon):
         cfg.update(self.options)
         cfg.debug = self.options.debug
         # Track interfaces
-        cfg.interfaces = (self._build_interface(itf)
+        cfg.interfaces = (ConfigDict(name=itf.name, description=itf.describe,
+                                     ra_prefixes=itf.ra_prefixes,
+                                     rdnss_list=itf.rdnss_list)
                           for itf in realIntfList(self._node)
                           if itf.ra_prefixes)
         return cfg
-
-    @staticmethod
-    def _build_interface(itf):
-        """Build the ConfigDict object representing the interface"""
-        ra_list = []
-        rdnss_list = []
-        for prefix in itf.ra_prefixes:
-            if prefix.get('prefix') is not None:
-                ra_list.append(
-                    ConfigDict(prefix=prefix['prefix'],
-                               valid_lifetime=prefix.get('valid_lifetime',
-                                                         RA_DEFAULT_VALID),
-                               preferred_lifetime=prefix.get('preferred_lifetime',
-                                                             RA_DEFAULT_PREF)))
-        for rdnss in itf.rdnss_list:
-            if rdnss.get('ip') is not None:
-                rdnss_list.append(
-                    ConfigDict(ip=rdnss['ip'],
-                               max_lifetime=rdnss.get('max_lifetime', DEFAULT_ADV_RDNSS_LIFETIME)))
-        return ConfigDict(name=itf.name, description=itf.describe,
-                          ra_prefixes=ra_list, rdnss_list=rdnss_list)
 
     def set_defaults(self, defaults):
         defaults.debug = ()
@@ -69,3 +78,4 @@ class RADVD(Daemon):
         except (IOError, OSError):
             pass
         super(RADVD, self).cleanup()
+
