@@ -34,8 +34,7 @@ connect to.
 _topo name_ : simple_ospfv3_network
 _args_ : n/a
 
-This network spawn a single AS topology, using OSPFv6, with multiple areas and
-variable link metrics.
+This network spawn a single AS topology, using OSPFv3, with variable link metrics.
 From the mininet CLI, access the routers vtysh using
 ```bash
 [noecho rx] telnet localhost [ospf6d/zebra]
