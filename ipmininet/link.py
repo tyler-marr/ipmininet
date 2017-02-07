@@ -25,11 +25,11 @@ class IPIntf(_m.Intf):
         # by aliasing interfaces.
         self.broadcast_domain = None
         self.addresses = {4: [], 6: []}
+        self.ra_prefixes = kwargs.pop('ra', [])
+        self.rdnss_list = kwargs.pop('rdnss', [])
         super(IPIntf, self).__init__(*args, **kwargs)
         self.isUp(setUp=True)
         self._refresh_addresses()
-        self.ra_prefixes = kwargs.get('ra', [])
-        self.rdnss_list = kwargs.get('rdnss', [])
 
     @property
     def igp_area(self):
