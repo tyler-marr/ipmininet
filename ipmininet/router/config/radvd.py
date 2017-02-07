@@ -8,14 +8,9 @@ DEFAULT_ADV_RDNSS_LIFETIME = 25
 
 
 class RADVD(Daemon):
-    """The base class for all Quagga-derived daemons"""
+    """The class representing the radvd daemon, used for router advertisements"""
 
-    # Additional parameters to pass when starting the daemon
-    STARTUP_LINE_EXTRA = ''
     NAME = 'radvd'
-
-    def __init__(self, *args, **kwargs):
-        super(RADVD, self).__init__(*args, **kwargs)
 
     def build(self):
         cfg = super(RADVD, self).build()
@@ -24,7 +19,8 @@ class RADVD(Daemon):
         cfg.debug = self.options.debug
         # Track interfaces
         cfg.interfaces = (self._build_interface(itf)
-                          for itf in realIntfList(self._node))
+                          for itf in realIntfList(self._node)
+                          if itf.ra_prefixes)
         return cfg
 
     @staticmethod
@@ -54,11 +50,10 @@ class RADVD(Daemon):
 
     @property
     def startup_line(self):
-        s = 'radvd -C {cfg} -p {pid} -m logfile -l {log} -u root {extra}'\
+        s = 'radvd -C {cfg} -p {pid} -m logfile -l {log} -u root'\
                 .format(cfg=self.cfg_filename,
                         log=self._file('log'),
-                        pid=self._file('pid'),
-                        extra=self.STARTUP_LINE_EXTRA)
+                        pid=self._file('pid'))
         return s
 
     @property
@@ -67,6 +62,10 @@ class RADVD(Daemon):
                .format(cfg=self.cfg_filename)
 
     def cleanup(self):
-        process = self._node.popen("killall radvd")  # TODO Find something better
-        process.wait()
+        try:
+            with open(self._file('pid'), 'r') as f:
+                pid = int(f.read())
+                self._node._processes.call('kill -9 %d ' % pid)
+        except (IOError, OSError):
+            pass
         super(RADVD, self).cleanup()
