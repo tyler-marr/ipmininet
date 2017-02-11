@@ -44,7 +44,6 @@ class RADVD(Daemon):
         cfg = super(RADVD, self).build()
         # Update with preset defaults
         cfg.update(self.options)
-        cfg.debug = self.options.debug
         # Track interfaces
         cfg.interfaces = (ConfigDict(name=itf.name, description=itf.describe,
                                      ra_prefixes=itf.ra_prefixes,
@@ -54,13 +53,18 @@ class RADVD(Daemon):
         return cfg
 
     def set_defaults(self, defaults):
-        defaults.debug = ()
+        """:param debuglevel: With this option you turn on debugging information.
+                              The debugging level is an integer in the range from 1 to 5,
+                              from quiet to very verbose. A debugging level of 0 completely
+                              turns off debugging. (see radvd(8) for more details)"""
+        defaults.debuglevel = 0
         super(RADVD, self).set_defaults(defaults)
 
     @property
     def startup_line(self):
-        s = 'radvd -C {cfg} -p {pid} -m logfile -l {log} -u root'\
-                .format(cfg=self.cfg_filename,
+        s = 'radvd -d {debuglevel} -C {cfg} -p {pid} -m logfile -l {log} -u root'\
+                .format(debuglevel=self.options.debuglevel,
+                        cfg=self.cfg_filename,
                         log=self._file('log'),
                         pid=self._file('pid'))
         return s
