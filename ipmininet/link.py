@@ -338,7 +338,8 @@ class GRETunnel(object):
                               by defualt the encapsualted packets."""
         self.if1, self.if2 = if1, if2
         self.ip1, self.gre1 = ip_interface(if1address), self._gre_name(if1)
-        self.ip2, self.gre2 = ip_interface(if2address), self._gre_name(if2)
+        self.ip2, self.gre2 = ((ip_interface(if2address), self._gre_name(if2))
+                               if bidirectional else (None, None))
         self.bidirectional = bidirectional
         self.setup_tunnel()
 
@@ -371,4 +372,4 @@ class GRETunnel(object):
 
     @staticmethod
     def _del_tunnel(if_local, name):
-        if_local.cmd('ip', 'tunnel', 'delete', name)
+        if_local.node.cmd('ip', 'tunnel', 'delete', name)
