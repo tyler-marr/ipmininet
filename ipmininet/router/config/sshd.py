@@ -2,12 +2,13 @@
 from distutils.spawn import find_executable
 import subprocess
 import os
+import tempfile
 
 from .base import Daemon
 
 
 # Generate a new ssh keypair at each run
-KEYFILE = '/tmp/__ipmininet_temp_key'
+KEYFILE = tempfile.mktemp(dir='/tmp')
 PUBKEY = '%s.pub' % KEYFILE
 if os.path.exists(KEYFILE):
     os.unlink(KEYFILE)
