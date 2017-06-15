@@ -63,7 +63,7 @@ class IPIntf(_m.Intf):
     def _ip(self, version):
         """Return the main IP of the given version for this interface"""
         try:
-            return str(self.__default(version).ip)
+            return self.__default(version).ip.compressed
         except IndexError:
             return None
 
@@ -338,8 +338,7 @@ class GRETunnel(object):
                               by defualt the encapsualted packets."""
         self.if1, self.if2 = if1, if2
         self.ip1, self.gre1 = ip_interface(if1address), self._gre_name(if1)
-        self.ip2, self.gre2 = ((ip_interface(if2address), self._gre_name(if2))
-                               if bidirectional else (None, None))
+        self.ip2, self.gre2 = ip_interface(if2address), self._gre_name(if2)
         self.bidirectional = bidirectional
         self.setup_tunnel()
 

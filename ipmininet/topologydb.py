@@ -1,6 +1,7 @@
 """This module defines a data-store to help dealing with all (possibly)
 auto-allocated properties of a topology: ip addresses, router ids, ..."""
 import json
+import itertools
 from ipaddress import ip_interface
 
 from .utils import otherIntf, realIntfList
@@ -120,6 +121,8 @@ class TopologyDB(object):
             nh = otherIntf(itf)
             itf_props = {
                 'ip': '%s/%s' % (itf.ip, itf.prefixLen),
+                'ips': [ip.with_prefixlen
+                        for ip in itertools.chain(itf.ips, itf.ip6s)],
                 'name': itf.name,
                 'bw': itf.params.get('bw', -1)
             }
