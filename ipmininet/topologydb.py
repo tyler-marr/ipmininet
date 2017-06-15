@@ -122,7 +122,7 @@ class TopologyDB(object):
             itf_props = {
                 'ip': '%s/%s' % (itf.ip, itf.prefixLen),
                 'ips': [ip.with_prefixlen
-                        for ip in itertools.chain(itf.ips, itf.ip6s)],
+                        for ip in itertools.chain(itf.ips(), itf.ip6s())],
                 'name': itf.name,
                 'bw': itf.params.get('bw', -1)
             }
