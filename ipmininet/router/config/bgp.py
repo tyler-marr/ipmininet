@@ -80,16 +80,14 @@ class BGP(QuaggaDaemon):
         # We add the port to the standard startup line
         return '-p %s' % self.port
 
-    def __init__(self, node, routerid=None, port=BGP_DEFAULT_PORT,
+    def __init__(self, node, port=BGP_DEFAULT_PORT,
                  *args, **kwargs):
         super(BGP, self).__init__(node=node, *args, **kwargs)
         self.port = port
-        self.routerid = routerid
 
     def build(self):
         cfg = super(BGP, self).build()
         cfg.asn = self._node.asn
-        cfg.routerid = self.routerid
         cfg.neighbors = self._build_neighbors()
         cfg.address_families = self._address_families(
                 self.options.address_families, cfg.neighbors)

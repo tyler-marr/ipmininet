@@ -24,11 +24,7 @@ interface ${intf.name}
 % endfor
 
 router ospf
-  % if node.ospfd.routerid:
   router-id ${node.ospfd.routerid}
-  % else:
-  router-id ${node.zebra.routerid}
-  % endif
   % for r in node.ospfd.redistribute:
   redistribute ${r.subtype} metric-type ${r.metric_type} metric ${r.metric}
   % endfor

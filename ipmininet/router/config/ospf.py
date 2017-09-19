@@ -44,14 +44,12 @@ class OSPF(QuaggaDaemon):
     NAME = 'ospfd'
     DEPENDS = (Zebra,)
 
-    def __init__(self, node, routerid=None, *args, **kwargs):
+    def __init__(self, node, *args, **kwargs):
         super(OSPF, self).__init__(node=node, *args, **kwargs)
-        self.routerid = routerid
 
     def build(self):
         cfg = super(OSPF, self).build()
         cfg.redistribute = self.options.redistribute
-        cfg.router_id = self.routerid
         interfaces = [itf
                       for itf in realIntfList(self._node)]
         cfg.interfaces = self._build_interfaces(interfaces)

@@ -27,11 +27,7 @@ interface ${intf.name}
 % endfor
 
 router ospf6
-  % if node.ospf6d.routerid:
   router-id ${node.ospf6d.routerid}
-  % else:
-  router-id ${node.zebra.routerid}
-  % endif
   % for itf in node.ospf6d.interfaces:
   interface ${itf.name} area ${itf.area}
   % endfor
