@@ -167,7 +167,8 @@ class Peer(object):
             for n in i.broadcast_domain.routers:
                 if n.node.name == peer:
                     ip = n.ip
-                    return (ip, n.node, i.ip > ip) if ip else (n.ip6, n.node, i.ip6 > n.ip6)
+                    bigger_id = base.config.routerid > n.node.config.routerid
+                    return (ip, n.node, bigger_id) if ip else (n.ip6, n.node, bigger_id)
                 elif n.node.asn == base.asn or not n.node.asn:
                     to_visit.extend(realIntfList(n.node))
         return None, None, False
