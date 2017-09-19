@@ -138,7 +138,7 @@ class Peer(object):
     def __init__(self, base, node):
         """:param base: The base router that has this peer
         :param node: The actual peer"""
-        self.peer, other, self.peer_is_active = self._find_peer_address(base, node)
+        self.peer, other, self.peer_is_active_opener = self._find_peer_address(base, node)
         self.asn = other.asn
         try:
             self.port = other.config.daemon(BGP).port

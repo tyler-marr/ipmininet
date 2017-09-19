@@ -20,7 +20,7 @@ router bgp ${node.bgpd.asn}
     % if n.ebgp_multihop:
     neighbor ${n.peer} ebgp-multihop
     % endif
-    % if n.peer_is_active:
+    % if n.peer_is_active_opener:
     ! In order to avoid simultaneous openings of the BGP session,
     ! one of the peers has to actively establish the session
     ! and the other one has to wait.
