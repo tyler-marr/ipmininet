@@ -3,10 +3,9 @@ import itertools
 
 from ipaddress import ip_network
 
-from .zebra import QuaggaDaemon, Zebra
-
 from ipmininet.iptopo import Overlay
 from ipmininet.utils import realIntfList
+from .zebra import QuaggaDaemon, Zebra
 
 
 BGP_DEFAULT_PORT = 179
@@ -81,16 +80,14 @@ class BGP(QuaggaDaemon):
         # We add the port to the standard startup line
         return '-p %s' % self.port
 
-    def __init__(self, node, routerid=None, port=BGP_DEFAULT_PORT,
+    def __init__(self, node, port=BGP_DEFAULT_PORT,
                  *args, **kwargs):
         super(BGP, self).__init__(node=node, *args, **kwargs)
         self.port = port
-        self.routerid = routerid
 
     def build(self):
         cfg = super(BGP, self).build()
         cfg.asn = self._node.asn
-        cfg.routerid = self.routerid
         cfg.neighbors = self._build_neighbors()
         cfg.address_families = self._address_families(
                 self.options.address_families, cfg.neighbors)
@@ -141,7 +138,7 @@ class Peer(object):
     def __init__(self, base, node):
         """:param base: The base router that has this peer
         :param node: The actual peer"""
-        self.peer, other = self._find_peer_address(base, node)
+        self.peer, other, self.peer_is_active_opener = self._find_peer_address(base, node)
         self.asn = other.asn
         try:
             self.port = other.config.daemon(BGP).port
@@ -170,7 +167,8 @@ class Peer(object):
             for n in i.broadcast_domain.routers:
                 if n.node.name == peer:
                     ip = n.ip
-                    return (ip if ip else n.ip6), n.node
+                    bigger_id = base.config.routerid > n.node.config.routerid
+                    return (ip, n.node, bigger_id) if ip else (n.ip6, n.node, bigger_id)
                 elif n.node.asn == base.asn or not n.node.asn:
                     to_visit.extend(realIntfList(n.node))
-        return None, None
+        return None, None, False

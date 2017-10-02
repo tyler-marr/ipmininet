@@ -29,6 +29,19 @@ Where the noecho rx is required if you don't use a separate xterm window for
 the node (via `xterm rx`), and ospfd/zebra is the name of the daemon you wish to
 connect to.
 
+## SimpleOSPFv3Network
+
+_topo name_ : simple_ospfv3_network
+_args_ : n/a
+
+This network spawn a single AS topology, using OSPFv3, with variable link metrics.
+From the mininet CLI, access the routers vtysh using
+```bash
+[noecho rx] telnet localhost [ospf6d/zebra]
+```
+Where the noecho rx is required if you don't use a separate xterm window for
+the node (via `xterm rx`), and ospf6d/zebra is the name of the daemon you wish to
+connect to.
 
 ## SimpleBGPNetwork
 
@@ -115,3 +128,13 @@ You can try to connect by reusing the per-router ssh config, e.g.:
 ```bash
 r1 ssh -o IdentityFile=/tmp/__ipmininet_temp_key r2
 ```
+
+## RouterAdvNetwork
+
+_topo name_ : router_adv_network
+_args_ : n/a
+
+This network spawn a small topology with two hosts and a router.
+One of these hosts uses Router Advertisements to get its IPv6 addresses
+The other one's IP addresses are announced in the Router Advertisements
+as the DNS server's addresses.

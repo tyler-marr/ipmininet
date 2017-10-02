@@ -62,7 +62,7 @@ Managment Network (OOB)|       |              |        |          |             
         r6, r7 = self.addRouter('r6'), self.addRouter('r7')
         self.addLink(r3, r6, igp_area='2.2.2.2')
         self.addLink(r3, r7, igp_area='2.2.2.2', igp_metric=5)
-        self.addLink(r4, r5, igp_area='2.2.2.2')
+        self.addLink(r6, r7, igp_area='2.2.2.2')
         for r in (r6, r7):
             for i in xrange(HOSTS_PER_ROUTER):
                 self.addLink(r, self.addHost('h%s%s' % (i, r)),

@@ -6,18 +6,24 @@ import os
 import abc
 from contextlib import closing
 from operator import attrgetter
+from ipaddress import ip_address
 
 from .utils import ConfigDict, template_lookup, ip_statement
-from ipmininet.utils import require_cmd
+from ipmininet.utils import require_cmd, realIntfList
+from ipmininet.link import address_comparator
 
 import mako
 
 from mininet.log import lg as log
 
 
+last_routerid = ip_address("0.0.0.1")
+
+
 class RouterConfig(object):
     """This class manages a set of daemons, and generates the global
     configuration for a router"""
+
     def __init__(self, node, daemons=(), sysctl=None,
                  *args, **kwargs):
         """Initialize our config builder
@@ -33,6 +39,7 @@ class RouterConfig(object):
         self._cfg = ConfigDict()  # Our root config object
         self._sysctl = {'net.ipv4.ip_forward': 1,
                         'net.ipv6.conf.all.forwarding': 1}
+        self.routerid = None
         if sysctl:
             self._sysctl.update(sysctl)
         super(RouterConfig, self).__init__(*args, **kwargs)
@@ -47,6 +54,8 @@ class RouterConfig(object):
         map(self.register_daemon,
             (c for cls in self._daemons.values()
              for c in cls.DEPENDS if c.NAME not in self._daemons))
+        # Set the router id
+        self.routerid = self.compute_routerid()
         # Build their config
         for name, d in self._daemons.iteritems():
             self._cfg[name] = d.build()
@@ -116,6 +125,73 @@ class RouterConfig(object):
             key = key.NAME
         return self._daemons[key]
 
+    @staticmethod
+    def incr_last_routerid():
+        global last_routerid
+        last_routerid += 1
+
+    def _equal_routerid(self, n):
+
+        # Router id of 'n' already set
+        if n.config.routerid:
+            return str(n.config.routerid) != str(last_routerid)
+
+        # Check that a router id explicitly set
+        # in any other daemon is not in conflict
+        # with the current router id
+        for d in n.config.daemons:
+            if d != self \
+                    and d.options.routerid \
+                    and str(d.options.routerid) == str(last_routerid):
+                return True
+
+        # Check that the most-visible IPv4 address is not in conflict
+        # with the current router id
+        ip_list = sorted((ip for itf in realIntfList(n)
+                          for ip in itf.ips()),
+                         cmp=address_comparator)
+        if len(ip_list) != 0 \
+                and str(ip_list.pop().ip) == str(last_routerid):
+            return True
+
+        return False
+
+    def compute_routerid(self):
+        """Computes the default router id for all daemons.
+        If a router ids were explicitly set for some of its daemons,
+        the router id set to the daemon with the highest priority is chosen as the global router id.
+        Otherwise if it has IPv4 addresses, it returns the most-visible one among its router interfaces.
+        If both conditions are wrong, it generates a unique router id."""
+
+        for d in self.daemons:
+            if d.options.routerid:
+                return d.options.routerid
+
+        ip_list = sorted((ip for itf in realIntfList(self._node)
+                          for ip in itf.ips()),
+                         cmp=address_comparator)
+        if len(ip_list) == 0:
+
+            to_visit = realIntfList(self._node)
+            # Explore all routers to check that none has the same router id
+            while to_visit:
+                self.incr_last_routerid()
+                visited = set()
+                while to_visit:
+                    i = to_visit.pop()
+                    if i in visited:
+                        continue
+                    visited.add(i)
+                    for n in i.broadcast_domain.routers:
+                        if self._equal_routerid(n.node):
+                            break  # We need to change the router id
+                        to_visit.extend(realIntfList(n.node))
+                to_visit = realIntfList(self._node) if to_visit else []
+            return last_routerid.compressed
+        else:
+            id = ip_list.pop().ip.compressed
+            return id
+
 
 class Daemon(object):
     """This class serves as base for routing daemons"""
@@ -148,6 +224,8 @@ class Daemon(object):
         :return: ConfigDict-like object describing this configuration"""
         cfg = ConfigDict()
         cfg.logfile = self._options['logfile']
+        cfg.routerid = self._options.routerid if self._options.routerid \
+                                              else self._node.config.routerid
         return cfg
 
     def cleanup(self):
@@ -155,7 +233,7 @@ class Daemon(object):
         for f in self.files:
             try:
                 os.unlink(f)
-            except IOError:
+            except (IOError, OSError):
                 pass
         self.files = []
 
@@ -221,7 +299,8 @@ class Daemon(object):
     def _defaults(self, **kwargs):
         """Return the default options for this daemon
 
-        :param logfile: the path to the logfile for the daemon"""
+        :param logfile: the path to the logfile for the daemon
+        :param routerid: the router id for this daemon"""
         defaults = ConfigDict()
         defaults.logfile = self._file('log')
         # Apply daemon-specific defaults
@@ -248,11 +327,16 @@ class BasicRouterConfig(RouterConfig):
         :param additional_daemons: Other daemons that should be used"""
         # Importing here to avoid circular import
         from ospf import OSPF
-        # We don't want any zebra-specific settings, so we rely on the OSPF
+        from ospf6 import OSPF6
+        # We don't want any zebra-specific settings, so we rely on the OSPF/OSPF6
         # DEPENDS list for that daemon to run it with default settings
         # We also don't want specific settings beside the defaults, so we don't
         # provide an instance but the class instead
-        d = [OSPF]
+        d = []
+        if node.use_v4:
+            d.append(OSPF)
+        if node.use_v6:
+            d.append(OSPF6)
         d.extend(additional_daemons)
         super(BasicRouterConfig, self).__init__(node, daemons=d,
                                                 *args, **kwargs)

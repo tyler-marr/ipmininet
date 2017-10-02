@@ -1,6 +1,6 @@
 import os
 
-from ipaddress import ip_network
+from ipaddress import ip_network, ip_interface
 
 from .base import Daemon
 from .utils import ConfigDict
