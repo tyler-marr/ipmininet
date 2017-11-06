@@ -7,7 +7,7 @@ from operator import attrgetter, methodcaller
 from ipaddress import ip_network, ip_interface
 
 from . import MIN_IGP_METRIC, OSPF_DEFAULT_AREA
-from .utils import otherIntf, realIntfList, L3Router
+from .utils import otherIntf, realIntfList, L3Router, address_pair, has_cmd
 from .router import Router
 from .router.config import BasicRouterConfig
 from .link import IPIntf, IPLink, PhysicalInterface
@@ -16,6 +16,9 @@ from mininet.net import Mininet
 from mininet.node import Host
 from mininet.nodelib import LinuxBridge
 from mininet.log import lg as log
+
+
+PING6_CMD = 'ping6' if has_cmd('ping6') else 'ping -6'  # ping6 is not provided by default on newer systems
 
 
 class IPNet(Mininet):
@@ -349,6 +352,129 @@ class IPNet(Mininet):
                 i.broadcast_domain = bd
             domains.append(bd)
         return domains
+
+    def _ping_set(self, src, dst_dict, timeout, v4=True):
+        """Do the actual ping to the dict of {dst: dst_ip} from src
+
+           :param src: origin of the ping
+           :param dst_dict: destinations {dst: dst_ip} of the ping
+           :param timeout: the time to wait for a response, as string
+           :param v4: whether IPv4 or IPv6 is used
+           :param return: a tuple (lost packets, sent packets)"""
+        if len(dst_dict) == 0:
+            return 0, 0
+        lost = 0
+        packets = 0
+        opts = ''
+        if timeout:
+            opts = '-W %s' % timeout
+
+        log.output("%s --%s--> " % (src.name, "IPv4" if v4 else "IPv6"))
+        for dst, dst_ip in dst_dict.iteritems():
+            result = src.cmd('%s -c1 %s %s' % ("ping" if v4 else PING6_CMD, opts, dst_ip))
+            sent, received = self._parsePing(result)
+            lost += sent - received
+            packets += sent
+            log.output("%s " % dst.name if received else "X ")
+        log.output('\n')
+
+        return lost, packets
+
+    def ping(self, hosts=None, timeout=None, use_v4=True, use_v6=True):
+        """Ping between all specified hosts.
+           If use_v4 is true, pings over IPv4 are used between any pair of hosts having at least
+           one IPv4 address on one of their interfaces (loopback excluded).
+           If use_v6 is true, pings over IPv6 are used between any pair of hosts having at least
+           one non-link-local IPv6 address on one of their interfaces (loopback excluded).
+
+           :param hosts: list of hosts or None if all must be pinged
+           :param timeout: time to wait for a response, as string
+           :param use_v4: whether ping(1) can be used
+           :param use_v6: whether ping6(1) can be used
+           :return: the packet loss percentage of IPv4 connectivity if self.use_v4 is set
+                    the loss percentage of IPv6 connectivity otherwise"""
+        packets = lost = 0
+        if not hosts:
+            hosts = self.hosts
+        incompatible_hosts = {}
+        if not use_v4 and not use_v6:
+            log.output("*** Warning: Parameters forbid both IPv4 and IPv6 for pings\n")
+            return 0
+
+        log.output("*** Ping: testing reachability over %s%s%s\n"
+                   % ("IPv4" if use_v4 else "",
+                      " and " if use_v4 and use_v6 else "",
+                      "IPv6" if use_v6 else ""))
+        for src in hosts:
+            ping_dict = {}
+            ping6_dict = {}
+            for dst in hosts:
+                if src != dst:
+                    src_ip, src_ip6 = address_pair(src, use_v4, use_v6)
+                    dst_ip, dst_ip6 = address_pair(dst, src_ip is not None, src_ip6 is not None)
+                    if dst_ip is not None:
+                        ping_dict[dst] = dst_ip
+                    if dst_ip6 is not None:
+                        ping6_dict[dst] = dst_ip6
+                    if use_v4 and dst_ip is None and use_v6 and dst_ip6 is None:
+                        node1 = src if src.name <= dst.name else dst
+                        node2 = src if node1 != src else dst
+                        if node2.name not in incompatible_hosts.setdefault(node1.name, []):
+                            incompatible_hosts[node1.name].append(node2.name)
+
+            result = self._ping_set(src, ping_dict, timeout, True)
+            lost += result[0]
+            packets += result[1]
+            result = self._ping_set(src, ping6_dict, timeout, False)
+            lost += result[0]
+            packets += result[1]
+
+        for node1, incompatibilities in incompatible_hosts.iteritems():
+            for node2 in incompatibilities:
+                log.output("*** Warning: %s and %s have no global address "
+                           "in the same IP version\n" % (node1, node2))
+
+        if packets > 0:
+            ploss = 100.0 * lost / packets
+            received = packets - lost
+            log.output("*** Results: %i%% dropped (%d/%d received)\n" %
+                       (ploss, received, packets))
+        else:
+            ploss = 0
+            log.output("*** Warning: No packets sent\n")
+
+        return ploss
+
+    def pingAll(self, timeout=None, use_v4=True, use_v6=True):
+        """Ping between all hosts.
+           return: ploss packet loss percentage"""
+        return self.ping(timeout=timeout, use_v4=use_v4, use_v6=use_v6)
+
+    def pingPair(self, use_v4=True, use_v6=True):
+        """Ping between first two hosts, useful for testing.
+           return: ploss packet loss percentage"""
+        hosts = [self.hosts[0], self.hosts[1]]
+        return self.ping(hosts=hosts, use_v4=use_v4, use_v6=use_v6)
+
+    def ping4All(self, timeout=None):
+        """Ping (IPv4-only) between all hosts.
+           return: ploss packet loss percentage"""
+        return self.pingAll(timeout=timeout, use_v6=False)
+
+    def ping4Pair(self):
+        """Ping (IPv4-only) between first two hosts, useful for testing.
+           return: ploss packet loss percentage"""
+        return self.pingPair(use_v6=False)
+
+    def ping6All(self, timeout=None):
+        """Ping (IPv6-only) between all hosts.
+           return: ploss packet loss percentage"""
+        return self.pingAll(timeout=timeout, use_v4=False)
+
+    def ping6Pair(self):
+        """Ping (IPv6-only) between first two hosts, useful for testing.
+           return: ploss packet loss percentage"""
+        return self.pingPair(use_v4=False)
 
 
 class BroadcastDomain(object):

@@ -2,6 +2,8 @@
 from mininet.cli import CLI
 from mininet.log import lg
 
+from ipmininet.utils import address_pair
+
 
 class IPCLI(CLI):
     def do_route(self, line=""):
@@ -31,3 +33,61 @@ class IPCLI(CLI):
             finally:
                 lg.info(n, '|', l)
         lg.info('\n')
+
+    def do_ping4all(self, line):
+        """Ping (IPv4-only) between all hosts."""
+        self.mn.ping4All(line)
+
+    def do_ping4pair(self, _line):
+        """Ping (IPv4-only) between first two hosts, useful for testing."""
+        self.mn.ping4Pair()
+
+    def do_ping6all(self, line):
+        """Ping (IPv4-only) between all hosts."""
+        self.mn.ping6All(line)
+
+    def do_ping6pair(self, _line):
+        """Ping (IPv6-only) between first two hosts, useful for testing."""
+        self.mn.ping6Pair()
+
+    def default(self, line):
+        """Called on an input line when the command prefix is not recognized.
+        Overridden to run shell commands when a node is the first CLI argument.
+        Past the first CLI argument, node names are automatically replaced with
+        corresponding addresses if possible.
+        We select only one IP version for these automatic replacements. The IP version
+        chosen is first restricted by the addresses available on the first node.
+        Then, we choose the IP version that enables every replacement.
+        We use IPv4 as a tie-break."""
+
+        first, args, line = self.parseline(line)
+
+        if first in self.mn:
+            if not args:
+                print("*** Enter a command for node: %s <cmd>" % first)
+                return
+            node = self.mn[first]
+            rest = args.split(' ')
+
+            hops = [h for h in rest if h in self.mn]
+            v4_support, v6_support = address_pair(self.mn[first])
+            v4_map = {}
+            v6_map = {}
+            for hop in hops:
+                ip, ip6 = address_pair(self.mn[hop], v4_support is not None, v6_support is not None)
+                if ip is not None:
+                    v4_map[hop] = ip
+                if ip6 is not None:
+                    v6_map[hop] = ip6
+            ip_map = v4_map if len(v4_map) >= len(v6_map) else v6_map
+
+            if len(ip_map) < len(hops):
+                missing = filter(lambda h: h not in ip_map, hops)
+                version = 'IPv4' if v4_support else 'IPv6'
+                lg.error('*** Nodes', missing, 'have no', version, 'address! Cannot execute the command.\n')
+                return
+
+            node.sendCmd(' '.join([ip_map.get(r, r) for r in rest]))
+            self.waitForNode(node)
+        else:
+            lg.error('*** Unknown command: %s\n' % line)
