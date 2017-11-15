@@ -90,7 +90,7 @@ class BGP(QuaggaDaemon):
         cfg.asn = self._node.asn
         cfg.neighbors = self._build_neighbors()
         cfg.address_families = self._address_families(
-                self.options.address_families, cfg.neighbors)
+            self.options.address_families, cfg.neighbors)
         return cfg
 
     def set_defaults(self, defaults):
@@ -138,7 +138,8 @@ class Peer(object):
     def __init__(self, base, node):
         """:param base: The base router that has this peer
         :param node: The actual peer"""
-        self.peer, other, self.peer_is_active_opener = self._find_peer_address(base, node)
+        self.peer, other, self.peer_is_active_opener = self._find_peer_address(
+            base, node)
         self.asn = other.asn
         try:
             self.port = other.config.daemon(BGP).port
@@ -168,7 +169,8 @@ class Peer(object):
                 if n.node.name == peer:
                     ip = n.ip
                     bigger_id = base.config.routerid > n.node.config.routerid
-                    return (ip, n.node, bigger_id) if ip else (n.ip6, n.node, bigger_id)
+                    return (ip, n.node, bigger_id) if ip else (
+                        n.ip6, n.node, bigger_id)
                 elif n.node.asn == base.asn or not n.node.asn:
                     to_visit.extend(realIntfList(n.node))
         return None, None, False

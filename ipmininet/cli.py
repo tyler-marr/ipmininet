@@ -55,8 +55,9 @@ class IPCLI(CLI):
         Overridden to run shell commands when a node is the first CLI argument.
         Past the first CLI argument, node names are automatically replaced with
         corresponding addresses if possible.
-        We select only one IP version for these automatic replacements. The IP version
-        chosen is first restricted by the addresses available on the first node.
+        We select only one IP version for these automatic replacements.
+        The chosen IP version chosen is first restricted by the addresses
+        available on the first node.
         Then, we choose the IP version that enables every replacement.
         We use IPv4 as a tie-break."""
 
@@ -74,7 +75,9 @@ class IPCLI(CLI):
             v4_map = {}
             v6_map = {}
             for hop in hops:
-                ip, ip6 = address_pair(self.mn[hop], v4_support is not None, v6_support is not None)
+                ip, ip6 = address_pair(self.mn[hop],
+                                       v4_support is not None,
+                                       v6_support is not None)
                 if ip is not None:
                     v4_map[hop] = ip
                 if ip6 is not None:
@@ -84,7 +87,8 @@ class IPCLI(CLI):
             if len(ip_map) < len(hops):
                 missing = filter(lambda h: h not in ip_map, hops)
                 version = 'IPv4' if v4_support else 'IPv6'
-                lg.error('*** Nodes', missing, 'have no', version, 'address! Cannot execute the command.\n')
+                lg.error('*** Nodes', missing, 'have no', version,
+                         'address! Cannot execute the command.\n')
                 return
 
             node.sendCmd(' '.join([ip_map.get(r, r) for r in rest]))

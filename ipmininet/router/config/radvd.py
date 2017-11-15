@@ -24,7 +24,8 @@ class AdvPrefix(ConfigDict):
 
 
 class AdvRDNSS(ConfigDict):
-    """The class representing an advertised DNS server in a Router Advertisement"""
+    """The class representing an advertised DNS server in a
+    Router Advertisement"""
 
     def __init__(self, ip, max_lifetime=DEFAULT_ADV_RDNSS_LIFETIME):
         """:param ip: the IPv6 address of the DNS server
@@ -36,7 +37,8 @@ class AdvRDNSS(ConfigDict):
 
 
 class RADVD(Daemon):
-    """The class representing the radvd daemon, used for router advertisements"""
+    """The class representing the radvd daemon,
+    used for router advertisements"""
 
     NAME = 'radvd'
 
@@ -53,26 +55,23 @@ class RADVD(Daemon):
         return cfg
 
     def set_defaults(self, defaults):
-        """:param debuglevel: With this option you turn on debugging information.
-                              The debugging level is an integer in the range from 1 to 5,
-                              from quiet to very verbose. A debugging level of 0 completely
-                              turns off debugging. (see radvd(8) for more details)"""
+        """:param debuglevel: Turn on debugging information. Takes an integer
+                              between 0 and 5, where 0 completely turns off
+                              debugging, and 5 is extremely verbose.
+                              (see radvd(8) for more details)"""
         defaults.debuglevel = 0
         super(RADVD, self).set_defaults(defaults)
 
     @property
     def startup_line(self):
-        s = 'radvd -d {debuglevel} -C {cfg} -p {pid} -m logfile -l {log} -u root'\
-                .format(debuglevel=self.options.debuglevel,
-                        cfg=self.cfg_filename,
-                        log=self._file('log'),
-                        pid=self._file('pid'))
-        return s
+        return ('radvd -d {debuglevel} -C {cfg} -p {pid} -m logfile -l {log}'
+                ' -u root'.format(debuglevel=self.options.debuglevel,
+                                  cfg=self.cfg_filename, log=self._file('log'),
+                                  pid=self._file('pid')))
 
     @property
     def dry_run(self):
-        return 'radvd -c -C {cfg} -u root'\
-               .format(cfg=self.cfg_filename)
+        return 'radvd -c -C {cfg} -u root'.format(cfg=self.cfg_filename)
 
     def cleanup(self):
         try:

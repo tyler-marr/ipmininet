@@ -17,8 +17,8 @@ from mininet.node import Host
 from mininet.nodelib import LinuxBridge
 from mininet.log import lg as log
 
-
-PING6_CMD = 'ping6' if has_cmd('ping6') else 'ping -6'  # ping6 is not provided by default on newer systems
+# ping6 is not provided by default on newer systems
+PING6_CMD = 'ping6' if has_cmd('ping6') else 'ping -6'
 
 
 class IPNet(Mininet):
@@ -177,10 +177,13 @@ class IPNet(Mininet):
                     if self.use_v4 and len(r.addresses[4]) > 0:
                         h.setDefaultRoute('via %s' % r.ip)
                         default = True
-                    if self.use_v6 and len(r.addresses[6]) > 0 and len(r.ra_prefixes) == 0:
-                        # We define a default route only if router advertisement are not activated
-                        # If we call the same function, the route created above might be deleted
-                        h.cmd('ip route add default dev %s via %s' % (h.defaultIntf(), r.ip6))
+                    if (self.use_v6 and len(r.addresses[6]) > 0 and
+                            len(r.ra_prefixes)) == 0:
+                        # We define a default route only if router xi
+                        # advertisement are not activated. If we call the same
+                        # function, the route created above might be deleted
+                        h.cmd('ip route add default dev %s via %s' % (
+                            h.defaultIntf(), r.ip6))
                         default = True
                     if len(r.rdnss_list) > 0:
                         # Launch a daemon able to interpret this RA option
@@ -371,7 +374,8 @@ class IPNet(Mininet):
 
         log.output("%s --%s--> " % (src.name, "IPv4" if v4 else "IPv6"))
         for dst, dst_ip in dst_dict.iteritems():
-            result = src.cmd('%s -c1 %s %s' % ("ping" if v4 else PING6_CMD, opts, dst_ip))
+            result = src.cmd('%s -c1 %s %s' % ("ping" if v4 else PING6_CMD,
+                                               opts, dst_ip))
             sent, received = self._parsePing(result)
             lost += sent - received
             packets += sent
@@ -382,23 +386,27 @@ class IPNet(Mininet):
 
     def ping(self, hosts=None, timeout=None, use_v4=True, use_v6=True):
         """Ping between all specified hosts.
-           If use_v4 is true, pings over IPv4 are used between any pair of hosts having at least
-           one IPv4 address on one of their interfaces (loopback excluded).
-           If use_v6 is true, pings over IPv6 are used between any pair of hosts having at least
-           one non-link-local IPv6 address on one of their interfaces (loopback excluded).
+           If use_v4 is true, pings over IPv4 are used between any pair of
+           hosts having at least one IPv4 address on one of their interfaces
+           (loopback excluded).
+           If use_v6 is true, pings over IPv6 are used between any pair of
+           hosts having at least one non-link-local IPv6 address on one of
+           their interfaces (loopback excluded).
 
            :param hosts: list of hosts or None if all must be pinged
            :param timeout: time to wait for a response, as string
-           :param use_v4: whether ping(1) can be used
-           :param use_v6: whether ping6(1) can be used
-           :return: the packet loss percentage of IPv4 connectivity if self.use_v4 is set
-                    the loss percentage of IPv6 connectivity otherwise"""
+           :param use_v4: whether IPv4 addresses can be used
+           :param use_v6: whether IPv6 addresses can be used
+           :return: the packet loss percentage of IPv4 connectivity if
+                    self.use_v4 is set the loss percentage of IPv6 connectivity
+                    otherwise"""
         packets = lost = 0
         if not hosts:
             hosts = self.hosts
         incompatible_hosts = {}
         if not use_v4 and not use_v6:
-            log.output("*** Warning: Parameters forbid both IPv4 and IPv6 for pings\n")
+            log.output("*** Warning: Parameters forbid both IPv4 and IPv6 for "
+                       "pings\n")
             return 0
 
         log.output("*** Ping: testing reachability over %s%s%s\n"
@@ -406,21 +414,24 @@ class IPNet(Mininet):
                       " and " if use_v4 and use_v6 else "",
                       "IPv6" if use_v6 else ""))
         for src in hosts:
+            src_ip, src_ip6 = address_pair(src, use_v4, use_v6)
             ping_dict = {}
             ping6_dict = {}
             for dst in hosts:
                 if src != dst:
-                    src_ip, src_ip6 = address_pair(src, use_v4, use_v6)
-                    dst_ip, dst_ip6 = address_pair(dst, src_ip is not None, src_ip6 is not None)
+                    dst_ip, dst_ip6 = address_pair(dst, src_ip is not None,
+                                                   src_ip6 is not None)
                     if dst_ip is not None:
                         ping_dict[dst] = dst_ip
                     if dst_ip6 is not None:
                         ping6_dict[dst] = dst_ip6
-                    if use_v4 and dst_ip is None and use_v6 and dst_ip6 is None:
+                    if (use_v4 and dst_ip is None and
+                            use_v6 and dst_ip6 is None):
                         node1 = src if src.name <= dst.name else dst
                         node2 = src if node1 != src else dst
-                        if node2.name not in incompatible_hosts.setdefault(node1.name, []):
-                            incompatible_hosts[node1.name].append(node2.name)
+                        if node2.name not in incompatible_hosts.setdefault(
+                                node1.name, set()):
+                            incompatible_hosts[node1.name].add(node2.name)
 
             result = self._ping_set(src, ping_dict, timeout, True)
             lost += result[0]
