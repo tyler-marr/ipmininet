@@ -21,12 +21,13 @@ subprocess.call(['ssh-keygen', '-b', '2048', '-t', 'rsa', '-f', KEYFILE, '-q',
 class SSHd(Daemon):
 
     NAME = 'sshd'
+    STARTUP_LINE_BASE = '{name} -D -u0'.format(name=find_executable(NAME))
+    KILL_PATTERNS = (STARTUP_LINE_BASE,)
 
     @property
     def startup_line(self):
-        return ('{name} -D -u0 -f {cfg}'
-                .format(name=find_executable(self.NAME),
-                        pubkey=PUBKEY,
+        return ('{base} -f {cfg}'
+                .format(base=self.STARTUP_LINE_BASE,
                         cfg=os.path.abspath(self.cfg_filename)))
 
     @property

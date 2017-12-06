@@ -203,6 +203,8 @@ class Daemon(object):
     PRIO = 10
     # The eventual dependencies of this daemon on other daemons
     DEPENDS = ()
+    # The kill patterns to cleanup any processes started by this daemon
+    KILL_PATTERNS = ()
 
     def __init__(self, node, **kwargs):
         """:param node: The node for which we build the config

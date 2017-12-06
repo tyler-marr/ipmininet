@@ -74,6 +74,7 @@ class BGP(QuaggaDaemon):
     """This class provides the configuration skeletons for BGP routers."""
     NAME = 'bgpd'
     DEPENDS = (Zebra,)
+    KILL_PATTERNS = (NAME,)
 
     @property
     def STARTUP_LINE_EXTRA(self):

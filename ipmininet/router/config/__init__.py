@@ -8,8 +8,9 @@ from .bgp import BGP, AS, iBGPFullMesh, bgp_peering, bgp_fullmesh, ebgp_session
 from .radvd import RADVD, AdvPrefix, AdvRDNSS
 from .iptables import IPTables, IP6Tables
 from .sshd import SSHd
+from .pimd import PIMD
 
 __all__ = ['BasicRouterConfig', 'Zebra', 'OSPF', 'OSPF6', 'OSPFArea', 'BGP', 'AS',
            'iBGPFullMesh', 'bgp_peering', 'RouterConfig', 'bgp_fullmesh',
            'ebgp_session', 'IPTables', 'IP6Tables', 'SSHd', 'RADVD', 'AdvPrefix',
-           'AdvRDNSS']
+           'AdvRDNSS', 'PIMD']

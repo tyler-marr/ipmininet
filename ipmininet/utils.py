@@ -1,7 +1,9 @@
 """utils: utility functions to manipulate host, interfaces, ..."""
 import collections
 import os
+
 from mininet.log import lg as log
+
 from ipaddress import ip_address
 
 
@@ -71,7 +73,6 @@ def prefix_for_netmask(mask):
     Will return garbage if the netmask is unproperly formatted!"""
     ip = ip_address(mask)
     v = ~int(ip) & ~(1 - (1 << ip.max_prefixlen))
-    print v
     l = 0
     while v > 0:
         v >>= 1

@@ -55,6 +55,7 @@ class Zebra(QuaggaDaemon):
     # We want zebra to preserve existing routes in the kernel RT (e.g. those
     # set via ip route)
     STARTUP_LINE_EXTRA = '-k'
+    KILL_PATTERNS = (NAME,)
 
     def __init__(self, *args, **kwargs):
         super(Zebra, self).__init__(*args, **kwargs)

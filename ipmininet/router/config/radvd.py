@@ -41,6 +41,7 @@ class RADVD(Daemon):
     used for router advertisements"""
 
     NAME = 'radvd'
+    KILL_PATTERNS = (NAME,)
 
     def build(self):
         cfg = super(RADVD, self).build()

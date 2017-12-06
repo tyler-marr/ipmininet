@@ -10,6 +10,7 @@ class OSPF6(OSPF):
     interfaces not facing another L3Router to passive"""
     NAME = 'ospf6d'
     DEAD_INT = 3
+    KILL_PATTERNS = (NAME,)
 
     def _build_interfaces(self, interfaces):
         """Return the list of OSPF6 interface properties from the list of

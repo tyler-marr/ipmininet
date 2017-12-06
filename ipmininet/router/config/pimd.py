@@ -9,6 +9,7 @@ class PIMD(QuaggaDaemon):
 
     NAME = 'pimd'
     DEPENDS = (Zebra,)
+    KILL_PATTERNS = (NAME,)
 
     def __init__(self, node, *args, **kwargs):
         super(PIMD, self).__init__(node=node, *args, **kwargs)

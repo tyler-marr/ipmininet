@@ -17,16 +17,14 @@ from .router_adv_network import RouterAdvNet
 
 from mininet.log import lg, LEVELS
 
-TOPOS = {
-         'simple_ospf_network': SimpleOSPFNet,
+TOPOS = {'simple_ospf_network': SimpleOSPFNet,
          'simple_ospfv3_network': SimpleOSPFv3Net,
          'simple_bgp_network': SimpleBGPTopo,
          'bgp_decision_process': BGPDecisionProcess,
          'iptables': IPTablesTopo,
          'gre': GRETopo,
          'ssh': SSHTopo,
-         'router_adv_network': RouterAdvNet
-        }
+         'router_adv_network': RouterAdvNet}
 
 NET_ARGS = {'router_adv_network': {'use_v4': False,
                                    'use_v6': True,

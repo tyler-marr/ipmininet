@@ -43,6 +43,7 @@ class OSPF(QuaggaDaemon):
     interfaces not facing another L3Router to passive"""
     NAME = 'ospfd'
     DEPENDS = (Zebra,)
+    KILL_PATTERNS = (NAME,)
 
     def __init__(self, node, *args, **kwargs):
         super(OSPF, self).__init__(node=node, *args, **kwargs)
