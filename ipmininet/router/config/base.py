@@ -17,7 +17,7 @@ import mako
 from mininet.log import lg as log
 
 
-last_routerid = ip_address("0.0.0.1")
+last_routerid = ip_address(u'0.0.0.1')
 
 
 class RouterConfig(object):

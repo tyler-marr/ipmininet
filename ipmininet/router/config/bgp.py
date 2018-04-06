@@ -118,7 +118,7 @@ class AddressFamily(object):
     def __init__(self, af_name, redistribute=(), networks=(),
                  *args, **kwargs):
         self.name = af_name
-        self.networks = map(ip_network, networks)
+        self.networks = map(ip_network, map(unicode, networks))
         self.redistribute = redistribute
         self.neighbors = []
         super(AddressFamily, self).__init__()

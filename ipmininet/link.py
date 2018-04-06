@@ -147,10 +147,10 @@ class IPIntf(_m.Intf):
             if isinstance(addr, basestring):
                 if '/' not in addr and prefixLen is not None:
                     # And use the default prefix if absent
-                    addr = ip_interface('%s/%s' % (addr, prefixLen))
+                    addr = ip_interface(u'%s/%s' % (addr, prefixLen))
                 else:
                     # no prefixLen defaults to full /128 or /32
-                    addr = ip_interface(addr)
+                    addr = ip_interface(unicode(addr))
 
             # Prepare assignment commands
             cmds.append('ip address add dev %s %s'
@@ -238,9 +238,9 @@ def _parse_addresses(out):
         try:
             t = parts[0]
             if t == 'inet':
-                v4.append(IPv4Interface(parts[1]))
+                v4.append(IPv4Interface(unicode(parts[1])))
             elif t == 'inet6':
-                v6.append(IPv6Interface(parts[1]))
+                v6.append(IPv6Interface(unicode(parts[1])))
             elif 'link/' in t:
                 mac = parts[1]
         except IndexError:
@@ -341,8 +341,10 @@ class GRETunnel(object):
                               tunnel is not established, the kernel will drop
                               by defualt the encapsualted packets."""
         self.if1, self.if2 = if1, if2
-        self.ip1, self.gre1 = ip_interface(if1address), self._gre_name(if1)
-        self.ip2, self.gre2 = ip_interface(if2address), self._gre_name(if2)
+        self.ip1, self.gre1 = (ip_interface(unicode(if1address)),
+                               self._gre_name(if1))
+        self.ip2, self.gre2 = (ip_interface(unicode(if2address)),
+                               self._gre_name(if2))
         self.bidirectional = bidirectional
         self.setup_tunnel()
 

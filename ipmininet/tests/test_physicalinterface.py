@@ -30,10 +30,10 @@ class LinkTopo(IPTopo):
 
 
 @pytest.fixture(scope='module',
-                params=[[ip_interface('192.168.1.2/24')],
-                        [ip_interface('2001:db8:ff::d/48')],
-                        [ip_interface('192.168.1.2/24'),
-                         ip_interface('2001:db8:ff::d/48')],
+                params=[[ip_interface(u'192.168.1.2/24')],
+                        [ip_interface(u'2001:db8:ff::d/48')],
+                        [ip_interface(u'192.168.1.2/24'),
+                         ip_interface(u'2001:db8:ff::d/48')],
                         ])
 def dummy_interface(request):
     if itf in ip('link'):
@@ -41,7 +41,7 @@ def dummy_interface(request):
     ip('link', 'add', 'dev', itf, 'type', 'dummy')
     ip('link', 'set', 'dev', itf, 'up')
     for addr in request.param:
-        ip('address', 'add', 'dev', itf, str(addr))
+        ip('address', 'add', 'dev', itf, addr.compressed)
 
     # Turns out deleting a net ns also deletes dummy interfaces so no need
     # for a finalizer/teardown

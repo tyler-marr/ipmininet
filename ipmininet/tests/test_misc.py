@@ -6,7 +6,7 @@ from ipmininet.link import _parse_addresses
 
 
 @pytest.mark.parametrize('address', [
-    '::/0', '0.0.0.0/0', '1.2.3.0/24', '2001:db8:1234::/48'
+    u'::/0', u'0.0.0.0/0', u'1.2.3.0/24', u'2001:db8:1234::/48'
 ])
 def test_nested_ip_networks(address):
     """This test ensures that we can build an IPvXNetwork from another one.
@@ -34,10 +34,10 @@ def test_prefix_for_netmask(test_input, expected):
 
 
 @pytest.mark.parametrize("test_input,expected", [
-    ('0.0.0.1', 1),
-    ('0.0.128.0', 128 << 8),
-    ('0.0.123.3', (123 << 8) + 3),
-    ('::f:1', (0xf << 16) + 1)
+    (u'0.0.0.1', 1),
+    (u'0.0.128.0', 128 << 8),
+    (u'0.0.123.3', (123 << 8) + 3),
+    (u'::f:1', (0xf << 16) + 1)
 ])
 def test_ipaddress_endianness(test_input, expected):
     """Checks int(ipaddress) endianness"""
@@ -45,8 +45,10 @@ def test_ipaddress_endianness(test_input, expected):
 
 
 def test_ip_address_format():
-    """Check that the output of ip address conforms to what we expect in order
-    to parse it properly"""
+    """
+    Check that the output of ip address conforms to what we expect in order
+    to parse it properly.
+    """
     # We force up status so we parse at least one IP of each family
     subprocess.call(['ip', 'link', 'set', 'dev', 'lo', 'up'])
     out = subprocess.check_output(['ip', 'address', 'show', 'dev', 'lo'])

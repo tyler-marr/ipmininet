@@ -67,7 +67,7 @@ class TopologyDB(object):
         :param x: the node from which we want an IP address
         :param y: the node on the other side of the link
         :return: ip_interface-like object"""
-        return ip_interface(self._interface(x, y)['ip'])
+        return ip_interface(unicode(self._interface(x, y)['ip']))
 
     def interfaces(self, x):
         """Return the list of interface names of node x"""

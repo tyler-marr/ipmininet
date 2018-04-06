@@ -71,7 +71,7 @@ def is_container(x):
 def prefix_for_netmask(mask):
     """Return the prefix length associated to a given netmask.
     Will return garbage if the netmask is unproperly formatted!"""
-    ip = ip_address(mask)
+    ip = ip_address(unicode(mask))
     v = ~int(ip) & ~(1 - (1 << ip.max_prefixlen))
     l = 0
     while v > 0:

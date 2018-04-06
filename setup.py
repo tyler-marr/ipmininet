@@ -4,7 +4,7 @@
 
 from setuptools import setup, find_packages
 
-VERSION = '0.4.2'
+VERSION = '0.5'
 
 modname = distname = 'ipmininet'
 
@@ -31,7 +31,7 @@ setup(
     install_requires=[
         'setuptools',
         'mako',
-        'py2-ipaddress',
+        'ipaddress',
         'mininet'
     ],
     tests_require=['pytest'],
