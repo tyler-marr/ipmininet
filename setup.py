@@ -36,7 +36,8 @@ setup(
         'setuptools',
         'mako',
         'ipaddress',
-        'mininet'
+        'mininet',
+        'future'
     ],
     scripts=['util/install.py', 'util/utils.py', 'util/build_vm.sh'],
     tests_require=['pytest'],
