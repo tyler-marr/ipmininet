@@ -32,7 +32,7 @@ and then, execute the following commands:
 
 .. code-block:: bash
 
-    $ vagrant init ipmininet/ubuntu-16.04
+    $ vagrant init ipmininet/ubuntu-18.04
     $ vagrant up
 
 This will create the VM. To access the VM with SSH, just issue the
@@ -42,7 +42,7 @@ following command in the same directory as the two previous one:
 
     $ vagrant ssh
 
-.. _vagrant box: https://app.vagrantup.com/ipmininet/boxes/ubuntu-16.04
+.. _vagrant box: https://app.vagrantup.com/ipmininet/boxes/ubuntu-18.04
 .. _Vagrant: https://www.vagrantup.com/downloads.html
 .. _Virtualbox: https://www.virtualbox.org/wiki/Downloads
 
@@ -50,18 +50,18 @@ Manual installation
 -------------------
 
 You can download and install IPMininet.
-You can change the installed version by replacing "0.7" in the following commands.
+You can change the installed version by replacing "v0.8" in the following commands.
 If you have pip above **18.1**, execute:
 
 .. code-block:: bash
 
-    $ sudo pip install --upgrade git+https://github.com/cnp3/ipmininet.git@0.7
+    $ sudo pip install --upgrade git+https://github.com/cnp3/ipmininet.git@v0.8
 
 If you have an older version of pip, use:
 
 .. code-block:: bash
 
-    $ sudo pip install --process-dependency-links --upgrade git+https://github.com/cnp3/ipmininet.git@0.7
+    $ sudo pip install --process-dependency-links --upgrade git+https://github.com/cnp3/ipmininet.git@v0.8
 
 Then, you can install all the daemons:
 

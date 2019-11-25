@@ -11,7 +11,7 @@ from setuptools import setup, find_packages
 from setuptools.command.develop import develop
 from setuptools.command.install import install
 
-VERSION = '0.7'
+VERSION = '0.8'
 
 modname = distname = 'ipmininet'
 
@@ -90,7 +90,7 @@ setup(
     classifiers=[
         "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
         "Programming Language :: Python",
-        "Development Status :: 2 - Pre-Alpha",
+        "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
         "Topic :: System :: Networking",
         'Programming Language :: Python :: 2',

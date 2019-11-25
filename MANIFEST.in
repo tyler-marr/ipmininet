@@ -1,1 +1,2 @@
 recursive-include ipmininet/router/config/templates *
+recursive-include ipmininet/host/config/templates *
