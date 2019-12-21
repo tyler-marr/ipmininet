@@ -15,7 +15,7 @@ from mininet.log import lg as log
 
 class IPIntf(_m.Intf):
     """This class represents a node interface. It is IP-agnostic, as in
-    its `addresses` attribute is a dictionnary keyed by IP version,
+    its `addresses` attribute is a dictionary keyed by IP version,
     containing the list of all addresses for a given version"""
     def __init__(self, *args, **kwargs):
         # Only one IP broadcast domain per interface, VLANs are supported

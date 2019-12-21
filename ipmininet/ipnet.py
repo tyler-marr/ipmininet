@@ -54,7 +54,7 @@ class IPNet(Mininet):
         :param use_v6: Enable IPv6
         :param ip6Base: Base prefix to use for IPv6 allocations
         :param max_v6_prefixlen: Maximal IPv6 prefixlen to auto-allocate
-        :param allocate_IPs: wether to auto-allocate subnets in the network
+        :param allocate_IPs: whether to auto-allocate subnets in the network
         :param igp_metric: The default IGP metric for the links
         :param igp_area: The default IGP area for the links"""
         self.router = router
@@ -309,7 +309,7 @@ class IPNet(Mininet):
         first subnet that is able to contain it, and split it in several
         subnets until it is restricted to its prefix.
         The next domain then is necessarily of the same size (reuses on of the
-        split subnets) or smaller (uses a previsouly split subnet or splits a
+        split subnets) or smaller (uses a previously split subnet or splits a
         bigger one). This avoids wasting of addresses (wrt. the specified
         max_prefixlen) at the cost of a quadratic (?) behavior.
 
@@ -591,7 +591,7 @@ class BroadcastDomain:
                        self.interfaces))
 
     def explore(self, itfs):
-        """Explore a new list of interfaces and add them and their neightbors
+        """Explore a new list of interfaces and add them and their neighbors
         to this broadcast domain
 
         :param itfs: a list of Intf"""

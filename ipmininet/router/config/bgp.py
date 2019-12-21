@@ -21,7 +21,7 @@ class AS(Overlay):
     def __init__(self, asn, routers=(), **props):
         """:param asn: The number for this AS
         :param routers: an initial set of routers to add to this AS
-        :param props: key-vals to set on all routers of this AS"""
+        :param props: key-values to set on all routers of this AS"""
         super().__init__(nodes=routers, nprops=props)
         self.asn = asn
 
@@ -290,7 +290,7 @@ class BGPConfig:
     def add_set_action(self, peer, set_action, matching, direction):
         """Add a 'RouteMapSetAction' to a BGP peering between two nodes
 
-        :param peer: The peer to which the routemap is applied
+        :param peer: The peer to which the route map is applied
         :param set_action: The RouteMapSetAction to set
         :param matching: A list of filter, can be empty
         :param direction: direction of the route map: 'in', 'out' or 'both'
@@ -367,7 +367,7 @@ class BGP(QuaggaDaemon):
 
     def build_access_list(self):
         """
-        Build and return a list of acess_filter
+        Build and return a list of access_filter
         :return:
         """
         node_access_lists = self._node.get('bgp_access_lists')
@@ -378,7 +378,7 @@ class BGP(QuaggaDaemon):
                                                entries=acl_entries.entries))
         return access_lists
 
-    def build_route_map(self, neigbors):
+    def build_route_map(self, neighbors):
         """
         Build and return a list of route map for the current node
         """
@@ -388,7 +388,7 @@ class BGP(QuaggaDaemon):
             for kwargs in node_route_maps:
                 remote_peer = kwargs.pop('peer')
                 peers = []
-                for neighbor in neigbors:
+                for neighbor in neighbors:
                     if neighbor.node == remote_peer:
                         peers.append(neighbor)
                 for peer in peers:

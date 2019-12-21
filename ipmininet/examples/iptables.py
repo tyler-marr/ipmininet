@@ -1,5 +1,5 @@
 """This module shows a simple network topology where routers have set
-custom ip(6)table rules, aka ACLs, to control traffic destinated to them
+custom ip(6)table rules, aka ACLs, to control traffic destined to them
 (hence why only INPUT rules are specified).
 
 Only ICMP traffic will be allowed between the routers over

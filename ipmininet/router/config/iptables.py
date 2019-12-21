@@ -1,5 +1,5 @@
 """This module defines IP(6)Table configuration. Due to the current (sad)
-state of affairs of IPv6, one is required to explicitely make two different
+state of affairs of IPv6, one is required to explicitly make two different
 daemon instances, one to manage iptables, one to manage ip6tables ..."""
 from itertools import groupby
 from operator import attrgetter

@@ -99,7 +99,7 @@ class OpenrDaemon(RouterDaemon):
             fluctuation for point-to-point links. Default: True.
         :param enable_secure_thrift_server: Flag to enable TLS for our thrift
             server. Disable this for plaintext thrift. Default: False.
-        :param enable_segment_routing: Experinmental and partially implemented
+        :param enable_segment_routing: Experimental and partially implemented
             segment routing feature. As of now it only elects node/adjacency
             labels. In future we will extend it to compute and program FIB
             routes. Default: False.
@@ -155,7 +155,7 @@ class OpenrDaemon(RouterDaemon):
         :param minloglevel: Log messages at or above this level. Again, the
             numbers of severity levels INFO, WARNING, ERROR, and FATAL are 0,
             1, 2, and 3, respectively. Default: 0.
-        :param node_name: Name of the OpenR node. Cruical setting if you run
+        :param node_name: Name of the OpenR node. Crucial setting if you run
             multiple nodes. Default: "".
         :param override_loopback_addr: Whenever new address is elected for a
             node, before assigning it to interface all previously allocated

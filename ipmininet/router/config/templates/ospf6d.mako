@@ -12,7 +12,7 @@ debug ospf6 ${section}
 % for intf in node.ospf6d.interfaces:
 interface ${intf.name}
 # ${intf.description}
-  # Highiest priority routers will be DR
+  # Highest priority routers will be DR
   ipv6 ospf6 priority ${intf.priority}
   ipv6 ospf6 cost ${intf.cost}
   % if not intf.passive and intf.active:

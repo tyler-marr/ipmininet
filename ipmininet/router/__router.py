@@ -1,5 +1,5 @@
 """This modules defines a L3 router class,
-   with a modulable config system."""
+   with a modular config system."""
 import sys
 import time
 
@@ -27,7 +27,7 @@ class ProcessHelper:
         self._processes = {}
 
     def call(self, *args, **kwargs):
-        """Call a command, wait for it to end and return its ouput.
+        """Call a command, wait for it to end and return its output.
 
         :param args: the command + arguments
         :param kwargs: key-val arguments, as used in subprocess.Popen"""

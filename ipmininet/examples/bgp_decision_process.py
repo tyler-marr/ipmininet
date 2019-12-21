@@ -1,5 +1,5 @@
-"""This lab showcases step 8 in the BGP decision process in Quagga,
-the IGP metric comparaison. Keep in mind that 'igp metric' is loosely defined
+"""This lab showcases step 8 in the BGP decision process in FRRouting,
+the IGP metric comparison. Keep in mind that 'igp metric' is loosely defined
 and as a result is simply the metric of the FIB route for the BGP nexthop.
 
 The key factor here is that the nexthop advertized over BGP must NOT be in a

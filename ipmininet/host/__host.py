@@ -1,5 +1,5 @@
 """This modules defines a host class,
-   with a modulable config system."""
+   with a modular config system."""
 
 import mininet.node as _m
 

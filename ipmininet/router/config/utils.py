@@ -1,4 +1,4 @@
-"""This modules contains various utilies to streamline config generation"""
+"""This modules contains various utilities to streamline config generation"""
 from ipaddress import ip_interface
 
 

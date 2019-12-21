@@ -150,5 +150,5 @@ class TopologyDB:
 
         :param n: Router instance"""
         self._add_node(n, {'type': 'router', })
-        # FIXME make routerid global accross all daemons
+        # FIXME make routerid global across all daemons
         #                  'routerid': n.id})

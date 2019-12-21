@@ -91,7 +91,7 @@ def prefix_for_netmask(mask):
 
 
 class L3Router:
-    """Placeholder class to identify L3 routing devices (primarely routers,
+    """Placeholder class to identify L3 routing devices (primarily routers,
     but this could also be used for a device needing to participate to some
     routing protocol e.g. for TE purposes)"""
     @staticmethod
@@ -106,7 +106,7 @@ class L3Router:
 
 def get_set(d, key, default):
     """Attempt to return the value for the given key,
-    otherwise intialize it
+    otherwise initialize it
 
     :param d: dict
     :param key: key of d

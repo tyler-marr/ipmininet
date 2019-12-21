@@ -119,7 +119,7 @@ class AccessListEntry:
 
     def __init__(self, prefix, action=PERMIT):
         """:param prefix: The ip_interface prefix for that ACL entry
-        :param action: Wether that prefix belongs to the ACL (PERMIT)
+        :param action: Whether that prefix belongs to the ACL (PERMIT)
                         or not (DENY)"""
         self.prefix = prefix
         self.action = action

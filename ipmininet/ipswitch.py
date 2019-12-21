@@ -18,7 +18,7 @@ class IPSwitch(LinuxBridge):
         LinuxBridge.__init__(self, name, stp=stp, prio=prio, **kwargs)
 
     def start(self, _controllers):
-        "Start Linux bridge"
+        """Start Linux bridge"""
         require_cmd("brctl", help_str="You need brctl to use %s objects"
                                       % self.__class__)
 

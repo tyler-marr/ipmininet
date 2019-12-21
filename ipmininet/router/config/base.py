@@ -33,7 +33,7 @@ class NodeConfig:
 
         :param node: The node for which this object will build configurations
         :param daemons: an iterable of active routing daemons for this node
-        :param sysctl: A dictionnary of sysctl to set for this node.
+        :param sysctl: A dictionary of sysctl to set for this node.
                        By default, it enables IPv4/IPv6 forwarding on all
                        interfaces."""
         self._node = node  # The node for which we will build the configuration
