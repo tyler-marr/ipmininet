@@ -255,7 +255,7 @@ def assert_dns_record(node, dns_server_address, record, port=53, timeout=60):
                                            node.name, dns_server_address, out)
 
 
-class CLICapture(object):
+class CLICapture:
 
     def __init__(self, loglevel):
         self.loglevel = loglevel

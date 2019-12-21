@@ -181,7 +181,7 @@ class IPTopo(Topo):
         self.phys_interface_capture[intfname] = node
 
 
-class OverlayWrapper(object):
+class OverlayWrapper:
 
     def __init__(self, topo, overlay):
         self.topo = topo
@@ -235,7 +235,7 @@ class HostDescription(NodeDescription):
 
 
 @functools.total_ordering
-class LinkDescription(object):
+class LinkDescription:
 
     def __init__(self, topo, src, dst, key, link_attrs):
         self.src = src

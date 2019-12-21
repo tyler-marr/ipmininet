@@ -201,7 +201,7 @@ class Named(HostDaemon):
                 for _ in self._node.get('dns_zones', [])]
 
 
-class DNSRecord(object):
+class DNSRecord:
 
     def __init__(self, rtype, domain_name, ttl=60):
         self.rtype = rtype

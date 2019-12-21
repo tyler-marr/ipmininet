@@ -93,7 +93,7 @@ def prefix_for_netmask(mask):
     return ip.max_prefixlen - length
 
 
-class L3Router(object):
+class L3Router:
     """Placeholder class to identify L3 routing devices (primarely routers,
     but this could also be used for a device needing to participate to some
     routing protocol e.g. for TE purposes)"""

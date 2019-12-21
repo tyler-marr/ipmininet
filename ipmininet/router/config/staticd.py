@@ -23,7 +23,7 @@ class STATIC(QuaggaDaemon):
         super().set_defaults(defaults)
 
 
-class StaticRoute(object):
+class StaticRoute:
     """A class representing a static route"""
 
     def __init__(self, prefix, nexthop, distance=1):

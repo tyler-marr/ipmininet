@@ -93,7 +93,7 @@ class Zebra(QuaggaDaemon):
             return False
 
 
-class CommunityList(object):
+class CommunityList:
     """A zebra community-list entry"""
     # Number of CmL
     count = 0
@@ -114,7 +114,7 @@ class CommunityList(object):
         return self.name == other.name and self.action == other.action
 
 
-class AccessListEntry(object):
+class AccessListEntry:
     """A zebra access-list entry"""
 
     def __init__(self, prefix, action=PERMIT):
@@ -125,7 +125,7 @@ class AccessListEntry(object):
         self.action = action
 
 
-class AccessList(object):
+class AccessList:
     """A zebra access-list class. It contains a set of AccessListEntry,
     which describes all prefix belonging or not to this ACL"""
 
@@ -150,7 +150,7 @@ class AccessList(object):
         return self.name == other.name
 
 
-class RouteMapMatchCond(object):
+class RouteMapMatchCond:
     """
     A class representing a RouteMap matching condition
     """
@@ -170,7 +170,7 @@ class RouteMapMatchCond(object):
                and self.cond_type == other.cond_type
 
 
-class RouteMapSetAction(object):
+class RouteMapSetAction:
     """
     A class representing a RouteMap set action
     """
@@ -188,7 +188,7 @@ class RouteMapSetAction(object):
                and self.value == other.value
 
 
-class RouteMap(object):
+class RouteMap:
     """A class representing a set of route maps applied to a given protocol"""
 
     # Number of route maps

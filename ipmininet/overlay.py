@@ -5,7 +5,7 @@ from ipaddress import ip_network
 from mininet.log import lg
 
 
-class Overlay(object):
+class Overlay:
     """This overlay simply defines groups of nodes and links, and properties
     that are common to all of them. It then registers these properties to the
     element when apply() is called.

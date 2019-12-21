@@ -134,7 +134,7 @@ def ebgp_session(topo, a, b, link_type=None):
     topo.linkInfo(a, b)['igp_passive'] = True
 
 
-class BGPConfig(object):
+class BGPConfig:
 
     def __init__(self, topo, router):
         self.topo = topo
@@ -437,7 +437,7 @@ class BGP(QuaggaDaemon):
         return BGPConfig(topo=topo, router=router)
 
 
-class AddressFamily(object):
+class AddressFamily:
     """An address family that is exchanged through BGP"""
 
     def __init__(self, af_name, redistribute=(), networks=()):
@@ -457,7 +457,7 @@ def AF_INET6(*args, **kwargs):
     return AddressFamily('ipv6', *args, **kwargs)
 
 
-class Peer(object):
+class Peer:
     """A BGP peer"""
     def __init__(self, base, node, v6=False):
         """:param base: The base router that has this peer

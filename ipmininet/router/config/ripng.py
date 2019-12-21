@@ -81,14 +81,14 @@ class RIPng(QuaggaDaemon):
         return L3Router.is_l3router_intf(otherIntf(itf))
 
 
-class RIPNetwork(object):
+class RIPNetwork:
     """A class holding an RIP network properties"""
 
     def __init__(self, domain):
         self.domain = domain
 
 
-class RIPRedistributedRoute(object):
+class RIPRedistributedRoute:
     """A class representing a redistributed route type in RIP"""
 
     def __init__(self, subtype, metric=1000):

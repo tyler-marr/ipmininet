@@ -26,7 +26,7 @@ __TEMPLATES_DIR = os.path.join(os.path.dirname(__file__), 'templates')
 router_template_lookup = TemplateLookup(directories=[__TEMPLATES_DIR])
 
 
-class NodeConfig(object):
+class NodeConfig:
     """This class manages a set of daemons, and generates the global
     configuration for a node"""
 

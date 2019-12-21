@@ -53,7 +53,7 @@ class IP6Tables(IPTables):
     # Everything else is already handled through iptables (and ip6tables.mako)
 
 
-class Rule(object):
+class Rule:
     """A wrapper to represent an IPTable rule"""
     def __init__(self, *args, **kw):
         """:param args: the rule members, which will joined by a whitespace

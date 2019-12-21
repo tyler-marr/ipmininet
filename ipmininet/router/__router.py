@@ -16,7 +16,7 @@ from mininet.log import lg
 import shlex
 
 
-class ProcessHelper(object):
+class ProcessHelper:
     """This class holds processes that are part of a given family, e.g. routing
     daemons. This also provides the abstraction to execute a new process,
     currently in a mininet namespace, but could be extended to execute in

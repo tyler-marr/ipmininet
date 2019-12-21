@@ -11,7 +11,7 @@ from .utils import otherIntf, realIntfList
 from mininet.log import lg
 
 
-class TopologyDB(object):
+class TopologyDB:
     """A convenience store for auto-allocated mininet properties.
     This is *NOT* to be used as IGP graph as it does not reflect the actual
     availability of a node in the network (as-in it is a static view of

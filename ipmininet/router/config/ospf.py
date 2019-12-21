@@ -99,7 +99,7 @@ class OSPF(QuaggaDaemon):
         return L3Router.is_l3router_intf(otherIntf(itf))
 
 
-class OSPFNetwork(object):
+class OSPFNetwork:
     """A class holding an OSPF network properties"""
 
     def __init__(self, domain, area):
@@ -107,7 +107,7 @@ class OSPFNetwork(object):
         self.area = area
 
 
-class OSPFRedistributedRoute(object):
+class OSPFRedistributedRoute:
     """A class representing a redistributed route type in OSPF"""
 
     def __init__(self, subtype, metric_type=1, metric=1000):

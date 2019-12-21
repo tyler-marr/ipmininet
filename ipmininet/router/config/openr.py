@@ -95,14 +95,14 @@ class Openr(OpenrDaemon):
         return L3Router.is_l3router_intf(otherIntf(itf))
 
 
-class OpenrNetwork(object):
+class OpenrNetwork:
     """A class holding an OpenR network properties"""
 
     def __init__(self, domain):
         self.domain = domain
 
 
-class OpenrPrefixes(object):
+class OpenrPrefixes:
     """A class representing a prefix type in OpenR"""
 
     def __init__(self, prefixes):

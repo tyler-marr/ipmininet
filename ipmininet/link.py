@@ -273,7 +273,7 @@ TCIntf.__bases__ = (IPIntf,)
 
 
 @functools.total_ordering
-class OrderedAddress(object):
+class OrderedAddress:
     def __init__(self, addr):
         self.addr = addr
 
@@ -351,7 +351,7 @@ class PhysicalInterface(IPIntf):
         self.setIP(v4)
 
 
-class GRETunnel(object):
+class GRETunnel:
     """The GRETunnel class, which enables to create a GRE
     Tunnel in a network linking two existing interfaces.
 

@@ -39,7 +39,7 @@ def sh(*cmds, **kwargs):
     return p
 
 
-class Distribution(object):
+class Distribution:
     NAME = None
     INSTALL_CMD = None
     UPDATE_CMD = None

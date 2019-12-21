@@ -531,7 +531,7 @@ class IPNet(Mininet):
         return self.pingPair(use_v4=False)
 
 
-class BroadcastDomain(object):
+class BroadcastDomain:
     """An IP broadcast domain in the network. This class stores the set of
     interfaces belonging to the same broadcast domain, as well as the
     associated IP prefix if any"""
