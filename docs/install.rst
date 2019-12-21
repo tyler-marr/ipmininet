@@ -4,7 +4,7 @@ Installation
 
 IPMininet needs at minimum:
 
-- Python_ (with pip) **2.7+** or **3.5+**
+- Python_ (with pip) **3.5+**
 - Mininet_
 
 IPMininet needs some daemon executables to be installed

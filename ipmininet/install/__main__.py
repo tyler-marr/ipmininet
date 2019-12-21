@@ -8,8 +8,7 @@ if __name__ == "__main__":
     args = parse_args()
     args.output_dir = os.path.normpath(os.path.abspath(args.output_dir))
 
-    dist.require_pip(2)
-    dist.require_pip(3)
+    dist.require_pip()
 
     if args.install_mininet:
         install_mininet(args.output_dir)
@@ -36,8 +35,7 @@ if __name__ == "__main__":
     if args.install_ipmininet:
         dist.install("git")
         source_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        dist.pip_install(2, source_dir)
-        dist.pip_install(3, source_dir)
+        dist.pip_install(source_dir)
 
     # Enable IPv6 (disabled by mininet installation)
 
@@ -52,8 +50,7 @@ if __name__ == "__main__":
     else:
         dist.install("netcat-openbsd", "dnsutils")
 
-    dist.pip_install(2, "pytest")
-    dist.pip_install(3, "pytest")
+    dist.pip_install("pytest")
 
     # Install OpenR
 

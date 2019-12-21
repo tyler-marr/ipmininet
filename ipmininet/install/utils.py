@@ -43,13 +43,11 @@ class Distribution(object):
     NAME = None
     INSTALL_CMD = None
     UPDATE_CMD = None
-    PIP3_CMD = None
-    PIP2_CMD = None
+    PIP_CMD = "pip"
     SpinPipVersion = "18.1"
 
     def __init__(self):
-        self.pip2_args = self.check_pip_version(self.PIP2_CMD)
-        self.pip3_args = self.check_pip_version(self.PIP3_CMD)
+        self.pip_args = self.check_pip_version(self.PIP_CMD)
 
     def check_pip_version(self, pip):
         from pkg_resources import parse_version
@@ -62,7 +60,7 @@ class Distribution(object):
             return ""
         content, _ = p.communicate()
         try:
-            v = content.decode("utf-8").split(u" ")[1]
+            v = content.decode("utf-8").split(" ")[1]
 
             if parse_version(v) >= parse_version(self.SpinPipVersion):
                 return ""
@@ -77,44 +75,35 @@ class Distribution(object):
     def update(self):
         sh(self.UPDATE_CMD)
 
-    def pip_install(self, version, *packages, **kwargs):
-        if version == 2:
-            pip = self.PIP2_CMD
-            args = self.pip2_args
-        else:
-            pip = self.PIP3_CMD
-            args = self.pip3_args
-        if find_executable(pip) is not None:
-            sh(pip + " -q install " + args + " ".join(packages), **kwargs)
+    def pip_install(self, *packages, **kwargs):
+        if find_executable(self.PIP_CMD) is not None:
+            sh(self.PIP_CMD + " -q install " + self.pip_args
+               + " ".join(packages), **kwargs)
 
-    def require_pip(self, version):
-        pip = self.PIP2_CMD if version == 2 else self.PIP3_CMD
-        if find_executable(pip) is None:
-            raise RuntimeError("Cannot find %s" % pip)
+    def require_pip(self):
+        if find_executable(self.PIP_CMD) is None:
+            raise RuntimeError("Cannot find %s" % self.PIP_CMD)
 
 
 class Ubuntu(Distribution):
     NAME = "Ubuntu"
     INSTALL_CMD = "apt-get -y -q install"
     UPDATE_CMD = "apt-get update"
-    PIP3_CMD = "pip3"
-    PIP2_CMD = "pip2"
+    PIP_CMD = "pip3"
 
 
 class Debian(Distribution):
     NAME = "Debian"
     INSTALL_CMD = "apt-get -y -q install"
     UPDATE_CMD = "apt-get update"
-    PIP3_CMD = "pip3"
-    PIP2_CMD = "pip2"
+    PIP_CMD = "pip3"
 
 
 class Fedora(Distribution):
     NAME = "Fedora"
     INSTALL_CMD = "yum -y install"
     UPDATE_CMD = "true"
-    PIP3_CMD = "pip"
-    PIP2_CMD = "pip2"
+    PIP_CMD = "pip"
 
 
 def supported_distributions():

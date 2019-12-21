@@ -10,9 +10,7 @@ export DEBIAN_FRONTEND=noninteractive
 
 MN_VERSION="2.3.0d6"
 MN_INSTALL_SCRIPT_REMOTE="https://raw.githubusercontent.com/mininet/mininet/${MN_VERSION}/util/vm/install-mininet-vm.sh"
-DEPS="python \
-      python-pip \
-      python3 \
+DEPS="python3 \
       python3-pip \
       git"
 
@@ -29,13 +27,11 @@ source <(curl -sL ${MN_INSTALL_SCRIPT_REMOTE})
 
 # Update pip install
 sudo pip3 install --upgrade pip
-sudo pip2 install --upgrade pip
-sudo apt remove -yq python-pip python3-pip
+sudo apt remove -yq python3-pip
 
 # Install ipmininet
 git clone https://github.com/cnp3/ipmininet.git
 pushd ipmininet
-sudo pip2 install .
 sudo pip3 install .
 sudo python3 -m ipmininet.install -af6
 popd

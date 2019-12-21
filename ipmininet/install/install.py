@@ -68,8 +68,7 @@ def install_mininet(output_dir, pip_install=True):
        cwd=output_dir)
 
     if pip_install:
-        dist.pip_install(2, "mininet/", cwd=output_dir)
-        dist.pip_install(3, "mininet/", cwd=output_dir)
+        dist.pip_install("mininet/", cwd=output_dir)
 
 
 def install_libyang(output_dir):
