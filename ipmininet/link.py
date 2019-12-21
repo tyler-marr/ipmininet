@@ -1,9 +1,6 @@
 """Classes for interfaces and links that are IP-agnostic. This basically
 enhance the Intf class from Mininet, and then define sane defaults for the link
 classes and a new TCIntf base."""
-from builtins import str
-from ipmininet import basestring
-
 from itertools import chain
 import subprocess
 from ipaddress import ip_interface, IPv4Interface, IPv6Interface
@@ -152,7 +149,7 @@ class IPIntf(_m.Intf):
             ip = (ip,)
         for addr in ip:
             # Make sure we have ip_interface-like objects
-            if isinstance(addr, basestring):
+            if isinstance(addr, str):
                 if '/' not in addr and prefixLen is not None:
                     # And use the default prefix if absent
                     addr = ip_interface('%s/%s' % (addr, prefixLen))
@@ -250,9 +247,9 @@ def _parse_addresses(out):
         try:
             t = parts[0]
             if t == 'inet':
-                v4.append(IPv4Interface(str(parts[1])))
+                v4.append(IPv4Interface(parts[1]))
             elif t == 'inet6':
-                v6.append(IPv6Interface(str(parts[1])))
+                v6.append(IPv6Interface(parts[1]))
             elif 'link/' in t:
                 mac = parts[1]
         except IndexError:

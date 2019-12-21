@@ -1,8 +1,6 @@
 """IPNet: The Mininet that plays nice with IP networks.
 This modules will auto-generate all needed configuration properties if
 unspecified by the user"""
-from builtins import str
-
 import math
 from operator import attrgetter, methodcaller
 
@@ -233,7 +231,7 @@ class IPNet(Mininet):
         try:
             self.topo.post_build(self)
         except AttributeError as e:
-            log.error('*** Skipping post_build():', str(e), '\n')
+            log.error('*** Skipping post_build():', e, '\n')
 
     def _allocated_ipv4_subnets(self):
         subnets = []

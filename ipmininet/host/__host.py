@@ -1,5 +1,6 @@
 """This modules defines a host class,
    with a modulable config system."""
+
 import mininet.node as _m
 
 from ipmininet.router import IPNode

@@ -1,7 +1,5 @@
 """This modules defines a L3 router class,
    with a modulable config system."""
-from builtins import str
-
 import sys
 import time
 
@@ -108,9 +106,9 @@ class IPNode(Node):
             err_code = err_code or code
             if code:
                 lg.error(d.NAME, 'configuration check failed ['
-                         'rcode:', str(code), ']\n'
-                         'stdout:', str(out), '\n'
-                         'stderr:', str(err))
+                         'rcode:', code, ']\n'
+                         'stdout:', out, '\n'
+                         'stderr:', err)
         if err_code:
             lg.error('Config checks failed, aborting!')
             mininet.clean.cleanup()
@@ -136,7 +134,6 @@ class IPNode(Node):
 
     def _set_sysctl(self, key, val):
         """Change a sysctl value, and return the previous set value"""
-        val = str(val)
         try:
             v = self._processes.call('sysctl', key)\
                     .split('=')[1]\

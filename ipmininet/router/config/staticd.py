@@ -1,5 +1,3 @@
-from builtins import str
-
 from ipaddress import ip_network
 
 from ipmininet.router.config.zebra import QuaggaDaemon, Zebra

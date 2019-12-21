@@ -1,5 +1,3 @@
-from builtins import str
-
 from ipaddress import ip_address
 
 from ipmininet.utils import find_node

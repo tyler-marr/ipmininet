@@ -1,17 +1,10 @@
-from builtins import str
-try:
-    # Python 2
-    from cStringIO import StringIO
-except ImportError:
-    # Python 3
-    from io import StringIO
-
 import pytest
 import re
 import signal
 import time
 
 import mininet.log
+from io import StringIO
 from ipaddress import ip_address, ip_network
 from ipmininet.utils import require_cmd
 

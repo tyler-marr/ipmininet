@@ -1,6 +1,4 @@
 """Base classes to configure a Named daemon"""
-from builtins import str
-
 import os
 
 import ipaddress

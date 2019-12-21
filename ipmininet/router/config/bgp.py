@@ -1,8 +1,6 @@
 """Base classes to configure a BGP daemon"""
 import heapq
 
-from builtins import str
-
 import itertools
 
 from ipaddress import ip_network, ip_address

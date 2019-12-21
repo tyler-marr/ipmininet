@@ -1,6 +1,4 @@
 """This module defines topology class that supports adding L3 routers"""
-from builtins import str
-
 import functools
 
 from mininet.topo import Topo

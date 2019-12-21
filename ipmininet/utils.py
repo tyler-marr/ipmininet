@@ -1,7 +1,4 @@
 """utils: utility functions to manipulate host, interfaces, ..."""
-from builtins import str
-from ipmininet import basestring
-
 import collections
 import os
 
@@ -78,7 +75,7 @@ def address_pair(n, use_v4=True, use_v6=True):
 def is_container(x):
     """Return whether x is a container (=iterable but not a string)"""
     return (isinstance(x, collections.Sequence) and
-            not isinstance(x, basestring))
+            not isinstance(x, str))
 
 
 def prefix_for_netmask(mask):

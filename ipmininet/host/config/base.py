@@ -2,8 +2,6 @@
 that is able to provide configurations for a set of daemons.
 It also defines the base class for a host daemon, as well as a minimalistic
 configuration for a host."""
-from future.utils import with_metaclass
-
 import abc
 import os
 
@@ -16,7 +14,7 @@ __TEMPLATES_DIR = os.path.join(os.path.dirname(__file__), 'templates')
 host_template_lookup = TemplateLookup(directories=[__TEMPLATES_DIR])
 
 
-class HostDaemon(with_metaclass(abc.ABCMeta, Daemon)):
+class HostDaemon(Daemon, metaclass=abc.ABCMeta):
     def __init__(self, node, template_lookup=host_template_lookup, **kwargs):
         super().__init__(node, template_lookup=template_lookup, **kwargs)
 
