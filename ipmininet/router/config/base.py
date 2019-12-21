@@ -325,11 +325,13 @@ class Daemon(metaclass=abc.ABCMeta):
             with closing(open(filename, 'w')) as f:
                 f.write(cfg[filename])
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def startup_line(self):
         """Return the corresponding startup_line for this daemon"""
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def dry_run(self):
         """The startup line to use to check that the daemon is
         well-configured"""
