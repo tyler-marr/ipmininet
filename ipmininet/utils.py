@@ -109,6 +109,7 @@ def get_set(d, key, default):
     otherwise intialize it
 
     :param d: dict
+    :param key: key of d
     :param default: constructor"""
     try:
         return d[key]

@@ -55,6 +55,7 @@ class iBGPFullMesh(AS):
 def bgp_fullmesh(topo, routers):
     """Establish a full-mesh set of BGP peerings between routers
 
+    :param topo: The current topology
     :param routers: The set of routers peering within each other"""
     def _set_peering(x):
         bgp_peering(topo, x[0], x[1])

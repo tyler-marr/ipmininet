@@ -108,13 +108,13 @@ def test_cli(tmp, net, input_line, expected_lines):
             f.close()
 
     pattern = re.compile("")
-    for l in expected_lines:
-        if isinstance(l, type(pattern)):
+    for line in expected_lines:
+        if isinstance(line, type(pattern)):
             assert len([x for x in capture.out
-                        if l.match(x) is not None]) > 0, \
+                        if line.match(x) is not None]) > 0, \
                 "Regex '%s' does not match the output of '%s':\n%s" \
-                % (l, input_line, "\n".join(capture.out))
+                % (line, input_line, "\n".join(capture.out))
         else:
-            assert l in capture.out, \
+            assert line in capture.out, \
                 "Line '%s' cannot be found in the output of '%s':\n%s" \
-                % (l, input_line, "\n".join(capture.out))
+                % (line, input_line, "\n".join(capture.out))

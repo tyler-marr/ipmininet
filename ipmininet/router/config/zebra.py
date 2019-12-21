@@ -256,9 +256,8 @@ class RouteMap:
             if set_action not in self.set_actions:
                 self.set_actions.append(set_action)
 
-    @staticmethod
     @property
-    def describe():
+    def describe(self):
         """Return the zebra description of this route map and apply it to the
         relevant protocols"""
         return 'route-map'

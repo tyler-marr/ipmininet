@@ -63,7 +63,7 @@ def test_capture_dummy_interface(dummy_interface):
 
 def check_addresses(addr_list, node):
     _, v4, v6 = _addresses_of(itf, node=node)
-    v4.extend(ip for ip in v6 if not ip.is_link_local)
+    v4.extend(addr for addr in v6 if not addr.is_link_local)
     assert set(v4) == set(addr_list)
 
 

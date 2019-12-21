@@ -16,6 +16,7 @@ def sh(*cmds, **kwargs):
     env = kwargs.pop("env", os.environ)
     env["LC_ALL"] = "C"
 
+    p = None
     for cmd in cmds:
         print("\n*** " + cmd)
         p = subprocess.Popen(shlex.split(cmd),
@@ -55,7 +56,7 @@ class Distribution:
         if find_executable(pip) is None:
             return ""
         p = sh("%s -V" % pip, output_stdout=False)
-        if p.wait() != 0:
+        if p is None or p.wait() != 0:
             print("Print cannot get the version of %s" % pip)
             return ""
         content, _ = p.communicate()

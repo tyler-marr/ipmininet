@@ -594,7 +594,7 @@ class BroadcastDomain:
         """Explore a new list of interfaces and add them and their neightbors
         to this broadcast domain
 
-        :param itf: a list of Intf"""
+        :param itfs: a list of Intf"""
         visited = []
         while itfs:
             # Explore one element

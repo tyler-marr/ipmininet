@@ -182,6 +182,8 @@ def update_grub():
         cmd = "grub2-mkconfig --output=/boot/grub2/grub.cfg"
     elif dist.NAME == "Ubuntu" or dist.NAME == "Debian":
         cmd = "update-grub"
+    else:
+        return
     sh(cmd)
 
 
