@@ -33,4 +33,4 @@ class IPTablesTopo(IPTopo):
         r1.addDaemon(IP6Tables, rules=ip6_rules)
         r2.addDaemon(IPTables, rules=ip_rules)
         r2.addDaemon(IP6Tables, rules=ip6_rules)
-        super(IPTablesTopo, self).build(*args, **kw)
+        super().build(*args, **kw)

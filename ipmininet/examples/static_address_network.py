@@ -52,4 +52,4 @@ class StaticAddressNet(IPTopo):
         self.addSubnet(nodes=[r1, h2, h4],
                        subnets=["10.2.0.0/24", "2001:12b::/64"])
 
-        super(StaticAddressNet, self).build(*args, **kwargs)
+        super().build(*args, **kwargs)

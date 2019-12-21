@@ -45,7 +45,7 @@ routers and links between the nodes.
             self.addLink(s2, r2)
             self.addLink(h2, s2)
 
-            super(MyTopology, self).build(*args, **kwargs)
+            super().build(*args, **kwargs)
 
 We can add daemons to the routers and hosts as well.
 
@@ -67,7 +67,7 @@ We can add daemons to the routers and hosts as well.
 
             # [...]
 
-            super(MyTopology, self).build(*args, **kwargs)
+            super().build(*args, **kwargs)
 
 By default, OSPF and OSPF6 are launched on each router.
 This means that your network has basic routing working by default.
@@ -87,7 +87,7 @@ To change that, we have to modify the router configuration class.
 
             # [...]
 
-            super(MyTopology, self).build(*args, **kwargs)
+            super().build(*args, **kwargs)
 
 We can customize the daemons configuration by passing options to them.
 In the following code snippet, we change the hello interval of the OSPF daemon.
@@ -107,7 +107,7 @@ You can find the configuration options in :ref:`Configuring daemons`
 
             # [...]
 
-            super(MyTopology, self).build(*args, **kwargs)
+            super().build(*args, **kwargs)
 
 
 Network run
@@ -142,7 +142,7 @@ As for Mininet, IPMininet networks need root access to be executed.
             self.addLink(s2, r2)
             self.addLink(h2, s2)
 
-            super(MyTopology, self).build(*args, **kwargs)
+            super().build(*args, **kwargs)
 
 .. testcode:: network run
 

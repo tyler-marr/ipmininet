@@ -11,7 +11,7 @@ class STATIC(QuaggaDaemon):
     KILL_PATTERNS = (NAME,)
 
     def build(self):
-        cfg = super(STATIC, self).build()
+        cfg = super().build()
         # Update with preset defaults
         cfg.static_routes = self.options.static_routes
         return cfg
@@ -20,7 +20,7 @@ class STATIC(QuaggaDaemon):
         """:param debug: the set of debug events that should be logged
         :param static_routes: The set of StaticRoute to create"""
         defaults.static_routes = []
-        super(STATIC, self).set_defaults(defaults)
+        super().set_defaults(defaults)
 
 
 class StaticRoute(object):

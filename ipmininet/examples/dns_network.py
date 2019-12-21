@@ -66,4 +66,4 @@ class DNSNetwork(IPTopo):
                         dns_slaves=[slave], records=[ptr_record],
                         ns_domain_name="mydomain.org", retry_time=8200)
 
-        super(DNSNetwork, self).build(*args, **kwargs)
+        super().build(*args, **kwargs)

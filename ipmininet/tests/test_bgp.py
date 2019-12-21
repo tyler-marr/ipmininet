@@ -27,7 +27,7 @@ class BGPTopo(IPTopo):
 
     def __init__(self, as2r1_params, *args, **kwargs):
         self.as2r1_params = as2r1_params
-        super(BGPTopo, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def build(self, *args, **kwargs):
         """
@@ -85,7 +85,7 @@ class BGPTopo(IPTopo):
         self.addLink(as3r1, self.addHost('h%s' % as3r1),
                      params1={"ip": ("10.3.0.1/24", "fd00:3::1/64")},
                      params2={"ip": ("10.3.0.2/24", "fd00:3::2/64")})
-        super(BGPTopo, self).build(*args, **kwargs)
+        super().build(*args, **kwargs)
 
 
 @require_root

@@ -102,7 +102,7 @@ class BGPPoliciesTopo4(IPTopo):
         # Add test hosts
         for r in self.routers():
             self.addLink(r, self.addHost('h%s' % r))
-        super(BGPPoliciesTopo4, self).build(*args, **kwargs)
+        super().build(*args, **kwargs)
 
     def bgp(self, name):
         r = self.addRouter(name, use_v4=False, use_v6=True)

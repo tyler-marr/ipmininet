@@ -102,7 +102,7 @@ class BGPTopoRR(IPTopo):
         ebgp_session(self, as5r1, as2r1)
         ebgp_session(self, as2r1, as4r1)
 
-        super(BGPTopoRR, self).build(*args, **kwargs)
+        super().build(*args, **kwargs)
 
     def bgp(self, name, family=AF_INET6()):
         r = self.addRouter(name)

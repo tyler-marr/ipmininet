@@ -107,7 +107,7 @@ class StaticRoutingNetFailure(IPTopo):
             StaticRoute(prefix="2042:44::2", nexthop="2042:16::1"),
         ])
 
-        super(StaticRoutingNetFailure, self).build(*args, **kwargs)
+        super().build(*args, **kwargs)
 
     def addRouter_v6(self, name):
         return self.addRouter(name, use_v4=False, use_v6=True,

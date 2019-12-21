@@ -11,7 +11,7 @@ class ConfigDict(dict):
     assignments such as self.xx = yy in __init__ will be shadowed!"""
 
     def __init__(self, **kwargs):
-        super(ConfigDict, self).__init__()
+        super().__init__()
         for key, val in kwargs.items():
             self[key] = val
 
@@ -19,7 +19,7 @@ class ConfigDict(dict):
         # so that self.item == self[item]
         try:
             # But preserve i.e. methods
-            return super(ConfigDict, self).__getattr__(item)
+            return super().__getattr__(item)
         except Exception:
             try:
                 return self[item]

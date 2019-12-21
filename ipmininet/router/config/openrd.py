@@ -226,7 +226,7 @@ class OpenrDaemon(RouterDaemon):
         return defaults
 
     def set_defaults(self, defaults):
-        super(OpenrDaemon, self).set_defaults(defaults)
+        super().set_defaults(defaults)
 
     def _cfg_options(self):
         """The OpenR daemon has currently no option to read config from

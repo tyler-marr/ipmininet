@@ -47,7 +47,7 @@ class OSPF6(OSPF):
         :param redistribute: set of OSPFRedistributedRoute sources
         :param instance_id: the number of the attached OSPF instance"""
         defaults.instance_id = 0
-        super(OSPF6, self).set_defaults(defaults)
+        super().set_defaults(defaults)
         # 'minimal hello-multiplier x' is not implemented in ospf6d
         defaults.dead_int = self.DEAD_INT
 

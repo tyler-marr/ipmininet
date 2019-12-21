@@ -32,7 +32,7 @@ Here is an example of a LAN with a few switches and one hub.
             self.addLink(hub1, s3)
             self.addLink(hub1, s4)
 
-            super(MyTopology, self).build(*args, **kwargs)
+            super().build(*args, **kwargs)
 
 The Spanning Tree Protocol can be configured by changing
 the ```stp_cost``` on the links (or directly on each interface).
@@ -62,7 +62,7 @@ The default cost is 1.
             ls3[s3].addParams(stp_cost=2)  # Cost changed on a single interface
             self.addLink(hub1, s4)
 
-            super(MyTopology, self).build(*args, **kwargs)
+            super().build(*args, **kwargs)
 
 In the Spanning Tree Protocol, each switch has a priority.
 The lowest priority switch becomes the root of the spanning tree.
@@ -93,7 +93,7 @@ You can manually set this value when you create the switch.
             ls3[s3].addParams(stp_cost=2)  # Cost changed on a single interface
             self.addLink(hub1, s4)
 
-            super(MyTopology, self).build(*args, **kwargs)
+            super().build(*args, **kwargs)
 
 .. doctest related functions
 

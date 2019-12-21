@@ -27,7 +27,7 @@ class RIPngNetworkAdjust(IPTopo):
         self.lr2r4_cost = int(lr2r4_cost)
         self.lr2r5_cost = int(lr2r5_cost)
         self.lr4r5_cost = int(lr4r5_cost)
-        super(RIPngNetworkAdjust, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def build(self, *args, **kwargs):
         r"""
@@ -102,7 +102,7 @@ class RIPngNetworkAdjust(IPTopo):
         self.addSubnet(nodes=[r4, h4], subnets=["2042:44::/64"])
         self.addSubnet(nodes=[r5, h5], subnets=["2042:55::/64"])
 
-        super(RIPngNetworkAdjust, self).build(*args, **kwargs)
+        super().build(*args, **kwargs)
 
     def addRouter_v6(self, name):
         return self.addRouter(name, use_v4=False, use_v6=True,

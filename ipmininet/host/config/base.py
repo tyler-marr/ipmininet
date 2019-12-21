@@ -18,8 +18,7 @@ host_template_lookup = TemplateLookup(directories=[__TEMPLATES_DIR])
 
 class HostDaemon(with_metaclass(abc.ABCMeta, Daemon)):
     def __init__(self, node, template_lookup=host_template_lookup, **kwargs):
-        super(HostDaemon, self).__init__(node, template_lookup=template_lookup,
-                                         **kwargs)
+        super().__init__(node, template_lookup=template_lookup, **kwargs)
 
 
 class HostConfig(NodeConfig):

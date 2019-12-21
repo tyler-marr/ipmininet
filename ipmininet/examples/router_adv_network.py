@@ -32,7 +32,7 @@ class RouterAdvNet(IPTopo):
         lrdns[r].addParams(ip=("2001:89ab::1/64", "2001:cdef::1/64"))
         lrdns[dns].addParams(ip=("2001:89ab::d/64", "2001:cdef::d/64"))
 
-        super(RouterAdvNet, self).build(*args, **kwargs)
+        super().build(*args, **kwargs)
 
     def addRouter_v6(self, name, **kwargs):
         return self.addRouter(name, config=RouterConfig, use_v4=False,

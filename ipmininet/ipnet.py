@@ -75,9 +75,8 @@ class IPNet(Mininet):
         self.igp_area = igp_area
         self.allocate_IPs = allocate_IPs
         self.physical_interface = {}  # itf: node
-        super(IPNet, self).__init__(ipBase=ipBase, host=host, switch=switch,
-                                    link=link, intf=intf, controller=controller,
-                                    *args, **kwargs)
+        super().__init__(ipBase=ipBase, host=host, switch=switch, link=link,
+                         intf=intf, controller=controller, *args, **kwargs)
 
     def addRouter(self, name, cls=None, **params):
         """Add a router to the network
@@ -97,11 +96,11 @@ class IPNet(Mininet):
     def __iter__(self):
         for r in self.routers:
             yield r.name
-        for n in super(IPNet, self).__iter__():
+        for n in super().__iter__():
             yield n
 
     def __len__(self):
-        return len(self.routers) + super(IPNet, self).__len__()
+        return len(self.routers) + super().__len__()
 
     def buildFromTopo(self, topo):
         log.info('\n*** Adding Routers:\n')
@@ -110,7 +109,7 @@ class IPNet(Mininet):
             log.info(routerName + ' ')
         log.info('\n')
         self.physical_interface.update(topo.phys_interface_capture)
-        super(IPNet, self).buildFromTopo(topo)
+        super().buildFromTopo(topo)
 
     def addLink(self, node1, node2,
                 igp_metric=None, igp_area=None, igp_passive=False,
@@ -152,8 +151,7 @@ class IPNet(Mininet):
                 # Only iff not already specified
                 if k not in p:
                     p[k] = v
-        return super(IPNet, self).addLink(node1=node1, node2=node2,
-                                          *args, **params)
+        return super().addLink(node1=node1, node2=node2, *args, **params)
 
     def addHost(self, name, **params):
         """Prevent Mininet from forcing the allocation of IPv4 addresses
@@ -161,7 +159,7 @@ class IPNet(Mininet):
            IPNet."""
         if 'ip' not in params:
             params['ip'] = None
-        return super(IPNet, self).addHost(name, **params)
+        return super().addHost(name, **params)
 
     def node_for_ip(self, ip):
         """Return the node owning a given IP address
@@ -171,7 +169,7 @@ class IPNet(Mininet):
         return self._ip_allocs[str(ip)]
 
     def start(self):
-        super(IPNet, self).start()
+        super().start()
         log.info('*** Starting, ', len(self.routers), 'routers\n')
         for router in self.routers:
             log.info(router.name + ' ')
@@ -214,10 +212,10 @@ class IPNet(Mininet):
             log.info(router.name + ' ')
             router.terminate()
         log.info('\n')
-        super(IPNet, self).stop()
+        super().stop()
 
     def build(self):
-        super(IPNet, self).build()
+        super().build()
         self.broadcast_domains = self._broadcast_domains()
         log.info("*** Found", len(self.broadcast_domains),
                  "broadcast domains\n")
@@ -547,7 +545,6 @@ class BroadcastDomain(object):
         interfaces
 
         :param interfaces: one Intf or a list of Intf"""
-        super(BroadcastDomain, self).__init__(*args, **kwargs)
         self.interfaces = set()
         self.net = None
         self._allocated_v4 = 1  # We need to skip subnet address

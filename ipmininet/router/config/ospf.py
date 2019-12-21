@@ -15,8 +15,7 @@ class OSPFArea(Overlay):
         :param routers: the set of routers for which all their interfaces
                         belong to that area
         :param links: individual links belonging to this area"""
-        super(OSPFArea, self).__init__(nodes=routers, links=links,
-                                       nprops=props)
+        super().__init__(nodes=routers, links=links, nprops=props)
         self.area = area
 
     @property
@@ -31,7 +30,7 @@ class OSPFArea(Overlay):
         # Add all links for the routers
         for r in self.nodes:
             self.add_link(*[(r, x) for x in topo.g[r].keys()])
-        super(OSPFArea, self).apply(topo)
+        super().apply(topo)
 
     def __str__(self):
         return '<OSPF area %s>' % self.area
@@ -46,10 +45,10 @@ class OSPF(QuaggaDaemon):
     KILL_PATTERNS = (NAME,)
 
     def __init__(self, node, *args, **kwargs):
-        super(OSPF, self).__init__(node=node, *args, **kwargs)
+        super().__init__(node=node, *args, **kwargs)
 
     def build(self):
-        cfg = super(OSPF, self).build()
+        cfg = super().build()
         cfg.redistribute = self.options.redistribute
         interfaces = self._node.intfList()
         cfg.interfaces = self._build_interfaces(interfaces)
@@ -93,7 +92,7 @@ class OSPF(QuaggaDaemon):
         defaults.hello_int = 1
         defaults.priority = 10
         defaults.redistribute = []
-        super(OSPF, self).set_defaults(defaults)
+        super().set_defaults(defaults)
 
     @staticmethod
     def is_active_interface(itf):

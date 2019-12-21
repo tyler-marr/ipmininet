@@ -24,7 +24,7 @@ class Named(HostDaemon):
     def __init__(self, node, **kwargs):
         # Check if apparmor is enabled in the distribution
         self.apparmor = has_cmd("aa-exec")
-        super(Named, self).__init__(node, **kwargs)
+        super().__init__(node, **kwargs)
 
     @property
     def startup_line(self):
@@ -41,7 +41,7 @@ class Named(HostDaemon):
             .format(name='named-checkconf', cfg=self.cfg_filename)
 
     def build(self):
-        cfg = super(Named, self).build()
+        cfg = super().build()
         cfg.log_severity = self.options.log_severity
         cfg.abs_logfile = os.path.abspath(cfg.logfile)
 
@@ -183,20 +183,20 @@ class Named(HostDaemon):
         :param dns_server_port: The port number of the dns server"""
         defaults.log_severity = "warning"
         defaults.dns_server_port = 53
-        super(Named, self).set_defaults(defaults)
+        super().set_defaults(defaults)
 
     def zone_filename(self, domain_name):
         return self._file(suffix='%s.cfg' % domain_name)
 
     @property
     def cfg_filenames(self):
-        return super(Named, self).cfg_filenames + \
+        return super().cfg_filenames + \
                [self.zone_filename(z.name)
                 for z in self._node.get('dns_zones', [])]
 
     @property
     def template_filenames(self):
-        return super(Named, self).template_filenames + \
+        return super().template_filenames + \
                ["%s-zone.mako" % self.NAME
                 for _ in self._node.get('dns_zones', [])]
 
@@ -231,8 +231,7 @@ class ARecord(DNSRecord):
     def __init__(self, domain_name, address, ttl=60):
         self.address = ipaddress.ip_address(str(address))
         rtype = "A" if self.address.version == 4 else "AAAA"
-        super(ARecord, self).__init__(rtype=rtype, domain_name=domain_name,
-                                      ttl=ttl)
+        super().__init__(rtype=rtype, domain_name=domain_name, ttl=ttl)
 
     @property
     def rdata(self):
@@ -252,8 +251,7 @@ class PTRRecord(DNSRecord):
                 and "." in self.mapped_domain_name:
             # Full DNS names should be ended by a dot in the config
             self.mapped_domain_name = self.mapped_domain_name + "."
-        super(PTRRecord, self).__init__("PTR", self.address.reverse_pointer,
-                                        ttl=ttl)
+        super().__init__("PTR", self.address.reverse_pointer, ttl=ttl)
 
     @property
     def v6(self):
@@ -267,8 +265,7 @@ class PTRRecord(DNSRecord):
 class NSRecord(DNSRecord):
 
     def __init__(self, domain_name, name_server, ttl=60):
-        super(NSRecord, self).__init__(rtype="NS", domain_name=domain_name,
-                                       ttl=ttl)
+        super().__init__(rtype="NS", domain_name=domain_name, ttl=ttl)
         self.name_server = name_server
         if "." not in self.name_server:
             self.name_server = self.name_server + "." + self.domain_name
@@ -287,8 +284,7 @@ class SOARecord(DNSRecord):
     def __init__(self, domain_name, refresh_time=DNS_REFRESH,
                  retry_time=DNS_RETRY, expire_time=DNS_EXPIRE,
                  min_ttl=DNS_MIN_TTL, records=()):
-        super(SOARecord, self).__init__(rtype="SOA", domain_name=domain_name,
-                                        ttl=min_ttl)
+        super().__init__(rtype="SOA", domain_name=domain_name, ttl=min_ttl)
         self.refresh_time = refresh_time
         self.retry_time = retry_time
         self.expire_time = expire_time
@@ -345,7 +341,7 @@ class DNSZone(Overlay):
                                     retry_time=retry_time,
                                     expire_time=expire_time, min_ttl=min_ttl,
                                     records=records)
-        super(DNSZone, self).__init__(nodes=[dns_master] + list(dns_slaves))
+        super().__init__(nodes=[dns_master] + list(dns_slaves))
 
         self.consistent = True
         for node_name in [dns_master] + self.dns_slaves + self.servers:
@@ -359,10 +355,10 @@ class DNSZone(Overlay):
             else self.name
 
     def check_consistency(self, topo):
-        return super(DNSZone, self).check_consistency(topo) and self.consistent
+        return super().check_consistency(topo) and self.consistent
 
     def apply(self, topo):
-        super(DNSZone, self).apply(topo)
+        super().apply(topo)
         if not self.consistent:
             return
 

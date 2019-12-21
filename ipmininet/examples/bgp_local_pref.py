@@ -76,7 +76,7 @@ class BGPTopoLocalPref(IPTopo):
         ebgp_session(self, as1r6, as4r1)
         ebgp_session(self, as1r5, as4r2)
 
-        super(BGPTopoLocalPref, self).build(*args, **kwargs)
+        super().build(*args, **kwargs)
 
     def bgp(self, name, family=AF_INET6()):
         r = self.addRouter(name)

@@ -35,4 +35,4 @@ class SpanningTreeIntermediate(IPTopo):
         for s in (s2, s4, s5, s9, s10):
             self.addLink(s, self.addHost('h%s' % s))
 
-        super(SpanningTreeIntermediate, self).build(*args, **kwargs)
+        super().build(*args, **kwargs)

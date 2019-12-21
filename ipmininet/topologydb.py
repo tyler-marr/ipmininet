@@ -24,7 +24,7 @@ class TopologyDB(object):
         :param net: an IPNet instance which will be parsed in order to extract
                     useful properties
         """
-        super(TopologyDB, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         # dict keyed by node name ->
         #     dict keyed by - properties -> val
         #                   - neighbor   -> interface properties"""

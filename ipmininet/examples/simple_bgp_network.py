@@ -39,7 +39,7 @@ class SimpleBGPTopo(IPTopo):
         # Add test hosts
         for r in self.routers():
             self.addLink(r, self.addHost('h%s' % r))
-        super(SimpleBGPTopo, self).build(*args, **kwargs)
+        super().build(*args, **kwargs)
 
     def bgp(self, name):
         r = self.addRouter(name, config=RouterConfig)

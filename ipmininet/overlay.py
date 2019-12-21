@@ -87,13 +87,13 @@ class Subnet(Overlay):
         self.node_links = {}
         self.consistent = True
 
-        super(Subnet, self).__init__(nodes=nodes, links=links)
+        super().__init__(nodes=nodes, links=links)
 
     def check_consistency(self, topo):
-        return super(Subnet, self).check_consistency(topo) and self.consistent
+        return super().check_consistency(topo) and self.consistent
 
     def apply(self, topo):
-        super(Subnet, self).apply(topo)
+        super().apply(topo)
 
         self.nodes = list(self.nodes)
         for x, y in self.links:

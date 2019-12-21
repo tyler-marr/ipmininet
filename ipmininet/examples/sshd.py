@@ -10,4 +10,4 @@ class SSHTopo(IPTopo):
         self.addLink(r1, r2)
         r1.addDaemon(SSHd)
         r2.addDaemon(SSHd)
-        super(SSHTopo, self).build(*args, **kw)
+        super().build(*args, **kw)

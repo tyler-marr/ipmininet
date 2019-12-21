@@ -30,7 +30,7 @@ class BGPPoliciesAdjustTopo(IPTopo):
         self.as_start = as_start
         self.as_end = as_end
         self.bgp_policy = bgp_policy
-        super(BGPPoliciesAdjustTopo, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def build(self, *args, **kwargs):
         r"""
@@ -116,7 +116,7 @@ class BGPPoliciesAdjustTopo(IPTopo):
         for r in self.routers():
             link = self.addLink(r, self.addHost('h%s' % r))
             self.addSubnet(links=[link], subnets=[prefix[r]])
-        super(BGPPoliciesAdjustTopo, self).build(*args, **kwargs)
+        super().build(*args, **kwargs)
 
     def check_extra_link(self):
         """

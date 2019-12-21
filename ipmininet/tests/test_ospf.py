@@ -31,7 +31,7 @@ class MinimalOSPFNet(IPTopo):
             .setdefault("ip", "10.0.0.1/24")
         self.link_params.setdefault("params2", {})\
             .setdefault("ip", "10.0.0.2/24")
-        super(MinimalOSPFNet, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def build(self, *args, **kwargs):
         r1 = self.addRouter("r1", config=RouterConfig)
@@ -55,7 +55,7 @@ class MinimalOSPFNet(IPTopo):
         h3 = self.addHost("h3")
         self.addLink(r3, h3, params1={"ip": "10.0.3.1/24"},
                      params2={"ip": "10.0.3.2/24"})
-        super(MinimalOSPFNet, self).build(*args, **kwargs)
+        super().build(*args, **kwargs)
 
 
 @require_root

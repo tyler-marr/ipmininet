@@ -22,7 +22,7 @@ class BGPDecisionProcess(IPTopo):
                               be cheaper than as2r1, although its router-id
                               is greater."""
         self.other_cost = int(other_cost)
-        super(BGPDecisionProcess, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def build(self, *args, **kwargs):
         """
@@ -80,9 +80,7 @@ class BGPDecisionProcess(IPTopo):
         # Add eBGP peering
         ebgp_session(self, as1r1, as2r1)
         ebgp_session(self, as3r1, as2r2)
-        super(BGPDecisionProcess, self).build(*args, **kwargs)
+        super().build(*args, **kwargs)
 
     def addRouter(self, name, **kwargs):
-        return super(BGPDecisionProcess, self).addRouter(name,
-                                                         config=RouterConfig,
-                                                         **kwargs)
+        return super().addRouter(name, config=RouterConfig, **kwargs)

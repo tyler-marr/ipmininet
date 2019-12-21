@@ -35,4 +35,4 @@ class StaticRoutingNet(IPTopo):
                      static_routes=[StaticRoute("2042:1a::/64", "2042:12::1"),
                                     StaticRoute("10.51.0.0/24", "10.12.0.1")])
 
-        super(StaticRoutingNet, self).build(*args, **kwargs)
+        super().build(*args, **kwargs)

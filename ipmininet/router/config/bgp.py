@@ -24,7 +24,7 @@ class AS(Overlay):
         """:param asn: The number for this AS
         :param routers: an initial set of routers to add to this AS
         :param props: key-vals to set on all routers of this AS"""
-        super(AS, self).__init__(nodes=routers, nprops=props)
+        super().__init__(nodes=routers, nprops=props)
         self.asn = asn
 
     @property
@@ -48,7 +48,7 @@ class iBGPFullMesh(AS):
         # Quagga auto-detect whether to use iBGP or eBGP depending on ASN
         # So we simply make a full mesh with everyone
         bgp_fullmesh(topo, self.nodes)
-        super(iBGPFullMesh, self).apply(topo)
+        super().apply(topo)
 
     def __str__(self):
         return '<iBGPMesh %s>' % self.asn
@@ -332,11 +332,11 @@ class BGP(QuaggaDaemon):
 
     def __init__(self, node, port=BGP_DEFAULT_PORT,
                  *args, **kwargs):
-        super(BGP, self).__init__(node=node, *args, **kwargs)
+        super().__init__(node=node, *args, **kwargs)
         self.port = port
 
     def build(self):
-        cfg = super(BGP, self).build()
+        cfg = super().build()
         cfg.asn = self._node.asn
         cfg.neighbors = self._build_neighbors()
         cfg.address_families = self._address_families(
@@ -411,7 +411,7 @@ class BGP(QuaggaDaemon):
         """:param debug: the set of debug events that should be logged
         :param address_families: The set of AddressFamily to use"""
         defaults.address_families = [AF_INET(), AF_INET6()]
-        super(BGP, self).set_defaults(defaults)
+        super().set_defaults(defaults)
 
     def _build_neighbors(self):
         """Compute the set of BGP peers for this BGP router
@@ -445,7 +445,6 @@ class AddressFamily(object):
         self.networks = [ip_network(str(n)) for n in networks]
         self.redistribute = redistribute
         self.neighbors = []
-        super(AddressFamily, self).__init__()
 
 
 def AF_INET(*args, **kwargs):

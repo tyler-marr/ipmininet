@@ -31,14 +31,14 @@ class QuaggaDaemon(RouterDaemon):
                             '%s_%s.api' % ('quagga', self._node.name))
 
     def build(self):
-        cfg = super(QuaggaDaemon, self).build()
+        cfg = super().build()
         cfg.debug = self.options.debug
         return cfg
 
     def set_defaults(self, defaults):
         """:param debug: the set of debug events that should be logged"""
         defaults.debug = ()
-        super(QuaggaDaemon, self).set_defaults(defaults)
+        super().set_defaults(defaults)
 
     @property
     def dry_run(self):
@@ -56,11 +56,11 @@ class Zebra(QuaggaDaemon):
     KILL_PATTERNS = (NAME,)
 
     def __init__(self, *args, **kwargs):
-        super(Zebra, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.files.append(self.zebra_socket)
 
     def build(self):
-        cfg = super(Zebra, self).build()
+        cfg = super().build()
         # Update with preset defaults
         cfg.update(self.options)
         # Track interfaces
@@ -76,7 +76,7 @@ class Zebra(QuaggaDaemon):
         :param route_maps: The set of RouteMap to create"""
         defaults.access_lists = []
         defaults.route_maps = []
-        super(Zebra, self).set_defaults(defaults)
+        super().set_defaults(defaults)
 
     def has_started(self):
         # We override this such that we wait until we have the API socket

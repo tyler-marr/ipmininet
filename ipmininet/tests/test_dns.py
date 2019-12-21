@@ -19,7 +19,7 @@ class CustomDNSNetwork(DNSNetwork):
            :param zone_args: Parameters to set on the DNS Zone"""
         self.named_cfg = named_cfg
         self.zone_args = zone_args
-        super(CustomDNSNetwork, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def build(self, *args, **kwargs):
 
@@ -30,7 +30,7 @@ class CustomDNSNetwork(DNSNetwork):
         # Add new parametrized DNS zone
         self.addDNSZone(name="test.org", dns_master="master2", **self.zone_args)
 
-        super(CustomDNSNetwork, self).build(*args, **kwargs)
+        super().build(*args, **kwargs)
         self.addLink("r2", master2)
 
 

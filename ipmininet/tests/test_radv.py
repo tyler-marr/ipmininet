@@ -16,7 +16,7 @@ class CustomRouterAdvNet(IPTopo):
         self.link_params = link_params
         self.link_params.setdefault("params1", {})\
             .setdefault("ip", "2001:1341::1/64")
-        super(CustomRouterAdvNet, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def build(self, *args, **kwargs):
         """
@@ -31,7 +31,7 @@ class CustomRouterAdvNet(IPTopo):
         self.addLink(r, h, **self.link_params)
         self.addLink(r, dns, params1={"ip": "2001:89ab::1/64"},
                      params2={"ip": "2001:89ab::d/64"})
-        super(CustomRouterAdvNet, self).build(*args, **kwargs)
+        super().build(*args, **kwargs)
 
 
 @require_root

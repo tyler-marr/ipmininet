@@ -10,9 +10,7 @@ class OpenrConfig(RouterConfig):
     """A simple config with only a OpenR daemon"""
     def __init__(self, node, *args, **kwargs):
         defaults = {}
-        super(OpenrConfig, self).__init__(node,
-                                          daemons=((Openr, defaults),),
-                                          *args, **kwargs)
+        super().__init__(node, daemons=((Openr, defaults),), *args, **kwargs)
 
 
 class SimpleOpenrNet(IPTopo):
@@ -37,7 +35,7 @@ class SimpleOpenrNet(IPTopo):
                 self.addLink(r, self.addHost('h%s%s' % (i, r)),
                              params2={'v4_width': 5})
 
-        super(SimpleOpenrNet, self).build(*args, **kwargs)
+        super().build(*args, **kwargs)
 
     def addRouter_openr(self, name):
         return self.addRouter(name, config=OpenrConfig,

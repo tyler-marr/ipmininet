@@ -19,7 +19,7 @@ class RIPng(QuaggaDaemon):
     KILL_PATTERNS = (NAME,)
 
     def build(self):
-        cfg = super(RIPng, self).build()
+        cfg = super().build()
         cfg.redistribute = self.options.redistribute
         cfg.split_horizon = self.options.split_horizon
         cfg.split_horizon_with_poison = self.options.split_horizon_with_poison
@@ -73,7 +73,7 @@ class RIPng(QuaggaDaemon):
         defaults.update_timer = UPDATE_TIMER
         defaults.timeout_timer = TIMEOUT_TIMER
         defaults.garbage_timer = GARBAGE_TIMER
-        super(RIPng, self).set_defaults(defaults)
+        super().set_defaults(defaults)
 
     @staticmethod
     def is_active_interface(itf):

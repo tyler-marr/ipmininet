@@ -27,7 +27,7 @@ class IPIntf(_m.Intf):
         self.addresses = {4: [], 6: []}
         self.ra_prefixes = kwargs.pop('ra', [])
         self.rdnss_list = kwargs.pop('rdnss', [])
-        super(IPIntf, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.isUp(setUp=True)
         self._refresh_addresses()
 
@@ -264,8 +264,7 @@ class IPLink(_m.Link):
     """A Link class that defaults to IPIntf"""
     def __init__(self, node1, node2, intf=IPIntf, *args, **kwargs):
         """We override Link intf default to use IPIntf"""
-        super(IPLink, self).__init__(node1=node1, node2=node2,
-                                     intf=intf, *args, **kwargs)
+        super().__init__(node1=node1, node2=node2, intf=intf, *args, **kwargs)
 
 
 # Monkey patch mininit.link ...
@@ -345,7 +344,7 @@ class PhysicalInterface(IPIntf):
                     ('ethtool', '-k', name)).decode("utf-8"):
                 log.error('Cannot move interface', name, 'into another network'
                           ' namespace!')
-        super(PhysicalInterface, self).__init__(name, *args, **kw)
+        super().__init__(name, *args, **kw)
         # Exclude link locals ...
         v4.extend(ip for ip in v6 if not ip.is_link_local)
         # Apply saved addresses

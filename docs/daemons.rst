@@ -19,7 +19,7 @@ In the following code snippet, we add BGP daemon to r1.
 
             # [...]
 
-            super(MyTopology, self).build(*args, **kwargs)
+            super().build(*args, **kwargs)
 
 This page presents how to configure each daemon.
 
@@ -140,7 +140,7 @@ The following code shows how to use all these abstractions:
             ebgp_session(self, as1r1, as2r1)
             ebgp_session(self, as2r3, as3r1)
 
-            super(MyTopology, self).build(*args, **kwargs)
+            super().build(*args, **kwargs)
 
 
 IPTables
@@ -219,7 +219,7 @@ We can pass parameters to links and interfaces when calling ``addLink()``:
             l[router1].addParams(ospf_dead_int=1)             # Router1 interface parameters
             l[router2].addParams(ospf_priority=1)             # Router2 interface parameters
 
-            super(MyTopology, self).build(*args, **kwargs)
+            super().build(*args, **kwargs)
 
 
 OSPF can use an overlay to declare with routers or links are completely in a given OSPF area.
@@ -248,7 +248,7 @@ while the link between r2 and r3 is in area '0.0.0.5':
             self.addOSPFArea('0.0.0.1', routers=[r1], links=[])
             self.addOSPFArea('0.0.0.5', routers=[], links=[(r2, r3)])
 
-            super(MyTopology, self).build(*args, **kwargs)
+            super().build(*args, **kwargs)
 
 
 OSPF6
@@ -291,7 +291,7 @@ It uses the following interface parameters:
             l[router1].addParams(ospf6_dead_int=1)  # Router1 interface parameters
             l[router2].addParams(ospf6_priority=1)  # Router2 interface parameters
 
-            super(MyTopology, self).build(*args, **kwargs)
+            super().build(*args, **kwargs)
 
 
 PIMD
@@ -351,7 +351,7 @@ for both IPv4 and IPv6.
                             dns_slaves=[dns_slave],
                             nodes=self.hosts())
 
-            super(MyTopology, self).build(*args, **kwargs)
+            super().build(*args, **kwargs)
 
 By default, the DNSZone will create all the NS, A and AAAA records.
 If you need to change the TTL of one of these record, you can define it explicitly.
@@ -389,7 +389,7 @@ If you need to change the TTL of one of these record, you can define it explicit
                             records=records,
                             nodes=self.hosts())
 
-            super(MyTopology, self).build(*args, **kwargs)
+            super().build(*args, **kwargs)
 
 By default, one `reverse DNS zone <https://en.wikipedia.org/wiki/Reverse_DNS_lookup>`_
 are created for all A records and another for all AAAA records. However, you may want to split
@@ -438,7 +438,7 @@ if they fit in its domain name. Otherwise, another zone will be created.
             self.addDNSZone(name=reverse_domain_name, dns_master=dns_master, dns_slaves=[dns_slave],
                             records=[ptr_record], ns_domain_name="mydomain.org", retry_time=8200)
 
-            super(MyTopology, self).build(*args, **kwargs)
+            super().build(*args, **kwargs)
 
 
 RADVD
@@ -480,7 +480,7 @@ This daemon also uses the following interface parameters:
             lrdns[r].addParams(ip=("2001:89ab::1/64", "2001:cdef::1/64"))    # Static IP addresses
             lrdns[dns].addParams(ip=("2001:89ab::d/64", "2001:cdef::d/64"))  # Static IP addresses
 
-            super(MyTopology, self).build(*args, **kwargs)
+            super().build(*args, **kwargs)
 
 Instead of giving all addresses explicitly, you can use AdvConnectedPrefix() to advertise all the prefixes
 of the interface. You can also give the name of the DNS server (instead of an IP address) in the AdvRDNSS constructor.
@@ -508,7 +508,7 @@ of the interface. You can also give the name of the DNS server (instead of an IP
             lrdns[r].addParams(ip=("2001:89ab::1/64", "2001:cdef::1/64"))    # Static IP addresses
             lrdns[dns].addParams(ip=("2001:89ab::d/64", "2001:cdef::d/64"))  # Static IP addresses
 
-            super(MyTopology, self).build(*args, **kwargs)
+            super().build(*args, **kwargs)
 
 
 RIPng
@@ -545,7 +545,7 @@ We can pass parameters to links when calling addLink():
             r1.addDaemon(RIPng)
             r2.addDaemon(RIPng)
 
-            super(MyTopology, self).build(*args, **kwargs)
+            super().build(*args, **kwargs)
 
 SSHd
 ----

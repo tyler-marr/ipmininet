@@ -67,7 +67,7 @@ class RIPngNetwork(IPTopo):
         r4.addDaemon(RIPng)
         r5.addDaemon(RIPng)
 
-        super(RIPngNetwork, self).build(*args, **kwargs)
+        super().build(*args, **kwargs)
 
     def addRouter_v6(self, name):
         return self.addRouter(name, use_v4=False, use_v6=True,

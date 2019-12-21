@@ -46,7 +46,6 @@ class NodeConfig(object):
             self.register_daemon(d)
         self._cfg = ConfigDict()  # Our root config object
         self._sysctl = sysctl if sysctl is not None else {}
-        super(NodeConfig, self).__init__(*args, **kwargs)
 
     def build(self):
         """Build the configuration for each daemon, then write the
@@ -174,8 +173,7 @@ class RouterConfig(NodeConfig):
                         'net.ipv6.conf.all.forwarding': 1}
         if sysctl:
             self._sysctl.update(sysctl)
-        super(RouterConfig, self).__init__(node, sysctl=self._sysctl, *args,
-                                           **kwargs)
+        super().__init__(node, sysctl=self._sysctl, *args, **kwargs)
         self.routerid = None
 
     def post_register_daemons(self):
@@ -273,7 +271,6 @@ class Daemon(with_metaclass(abc.ABCMeta, object)):
         self.files = []
         self.template_lookup = template_lookup
         self._options = self._defaults(**kwargs)
-        super(Daemon, self).__init__()
 
     @property
     def options(self):
@@ -398,7 +395,7 @@ class Daemon(with_metaclass(abc.ABCMeta, object)):
 class RouterDaemon(with_metaclass(abc.ABCMeta, Daemon)):
 
     def build(self):
-        cfg = super(RouterDaemon, self).build()
+        cfg = super().build()
         cfg.routerid = self._options.routerid if self._options.routerid \
             else self._node.nconfig.routerid
         return cfg
@@ -430,5 +427,4 @@ class BasicRouterConfig(RouterConfig):
         if node.use_v6:
             d.append(OSPF6)
         d.extend(additional_daemons)
-        super(BasicRouterConfig, self).__init__(node, daemons=d,
-                                                *args, **kwargs)
+        super().__init__(node, daemons=d, *args, **kwargs)

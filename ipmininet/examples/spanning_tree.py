@@ -31,4 +31,4 @@ class SpanningTreeNet(IPTopo):
         for s in (s1, s2, s3):
             self.addLink(s, self.addHost('h%s' % s))
 
-        super(SpanningTreeNet, self).build(*args, **kwargs)
+        super().build(*args, **kwargs)

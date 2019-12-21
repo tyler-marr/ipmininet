@@ -23,7 +23,7 @@ class AdvPrefix(ConfigDict):
                                   in radvd.conf(5) for this prefix
            :param preferred_lifetime: corresponds to the AdvPreferredLifetime
                                       in radvd.conf(5) for this prefix"""
-        super(AdvPrefix, self).__init__()
+        super().__init__()
         self["prefixes"] = list(prefix) if is_container(prefix) else [prefix]
         self["valid_lifetime"] = valid_lifetime
         self["preferred_lifetime"] = preferred_lifetime
@@ -38,9 +38,8 @@ class AdvConnectedPrefix(AdvPrefix):
                                   in radvd.conf(5) for this prefix
            :param preferred_lifetime: corresponds to the AdvPreferredLifetime
                                       in radvd.conf(5) for this prefix"""
-        super(AdvConnectedPrefix, self).\
-            __init__(valid_lifetime=valid_lifetime,
-                     preferred_lifetime=preferred_lifetime)
+        super().__init__(valid_lifetime=valid_lifetime,
+                         preferred_lifetime=preferred_lifetime)
 
 
 class AdvRDNSS(ConfigDict):
@@ -52,7 +51,7 @@ class AdvRDNSS(ConfigDict):
                         or the node name
            :param max_lifetime: corresponds to the AdvValidLifetime
                                 in radvd.conf(5) for this dns server address"""
-        super(AdvRDNSS, self).__init__()
+        super().__init__()
         self["node"] = node
         self["max_lifetime"] = max_lifetime
         try:
@@ -70,7 +69,7 @@ class RADVD(RouterDaemon):
     KILL_PATTERNS = (NAME,)
 
     def build(self):
-        cfg = super(RADVD, self).build()
+        cfg = super().build()
         # Update with preset defaults
         cfg.update(self.options)
         # Track interfaces
@@ -109,7 +108,7 @@ class RADVD(RouterDaemon):
                            debugging, and 5 is extremely verbose.
                            (see radvd(8) for more details)"""
         defaults.debuglevel = 0
-        super(RADVD, self).set_defaults(defaults)
+        super().set_defaults(defaults)
 
     @property
     def startup_line(self):
@@ -131,4 +130,4 @@ class RADVD(RouterDaemon):
                         self._node._processes.call('kill -9 %d ' % pid)
         except (IOError, OSError):
             pass
-        super(RADVD, self).cleanup()
+        super().cleanup()

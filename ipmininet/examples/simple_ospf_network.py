@@ -73,4 +73,4 @@ Managment Network (OOB)|       |              |        |          |             
         for r in self.routers():
             self.addLink(s1, r, igp_passive=True)
 
-        super(SimpleOSPFNet, self).build(*args, **kwargs)
+        super().build(*args, **kwargs)

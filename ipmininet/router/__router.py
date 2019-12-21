@@ -27,7 +27,6 @@ class ProcessHelper(object):
         self.node = node
         self._pid_gen = 0
         self._processes = {}
-        super(ProcessHelper, self).__init__(*args, **kwargs)
 
     def call(self, *args, **kwargs):
         """Call a command, wait for it to end and return its ouput.
@@ -86,7 +85,7 @@ class IPNode(Node):
                                 processes for this node
         :param use_v4: Whether this node has IPv4
         :param use_v6: Whether this node has IPv6"""
-        super(IPNode, self).__init__(name, *args, **kwargs)
+        super().__init__(name, *args, **kwargs)
         self.use_v4 = use_v4
         self.use_v6 = use_v6
         self.cwd = cwd
@@ -133,7 +132,7 @@ class IPNode(Node):
             self.nconfig.cleanup()
         for opt, val in self._old_sysctl.items():
             self._set_sysctl(opt, val)
-        super(IPNode, self).terminate()
+        super().terminate()
 
     def _set_sysctl(self, key, val):
         """Change a sysctl value, and return the previous set value"""
@@ -187,7 +186,7 @@ class Router(IPNode, L3Router):
         """:param password: The password for the routing daemons vtysh access
            :param lo_addresses: The list of addresses to set on the loopback
                                 interface"""
-        super(Router, self).__init__(name, config=config, *args, **kwargs)
+        super().__init__(name, config=config, *args, **kwargs)
         self.password = password
 
         # This interface already exists in the node,

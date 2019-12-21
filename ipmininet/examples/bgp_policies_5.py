@@ -113,4 +113,4 @@ class BGPPoliciesTopo5(IPTopo):
         for r in self.routers():
             link = self.addLink(r, self.addHost('h%s' % r))
             self.addSubnet(links=[link], subnets=[prefix[r]])
-        super(BGPPoliciesTopo5, self).build(*args, **kwargs)
+        super().build(*args, **kwargs)

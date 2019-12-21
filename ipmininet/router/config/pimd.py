@@ -12,10 +12,10 @@ class PIMD(QuaggaDaemon):
     KILL_PATTERNS = (NAME,)
 
     def __init__(self, node, *args, **kwargs):
-        super(PIMD, self).__init__(node=node, *args, **kwargs)
+        super().__init__(node=node, *args, **kwargs)
 
     def build(self):
-        cfg = super(PIMD, self).build()
+        cfg = super().build()
         cfg.update(self.options)
         cfg.interfaces = [
             ConfigDict(name=itf.name,
@@ -31,4 +31,4 @@ class PIMD(QuaggaDaemon):
         :param multicast_igmp: Enable igmp by default or not"""
         defaults.multicast_ssm = True
         defaults.multicast_igmp = True
-        super(PIMD, self).set_defaults(defaults)
+        super().set_defaults(defaults)

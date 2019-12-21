@@ -26,7 +26,7 @@ class LinkTopo(IPTopo):
         # one (auto-allocated) IPv4 address---don't break config generation
         self.addLink(r1, r2)
         self.capture_physical_interface(itf, r1)
-        super(LinkTopo, self).build(*args, **kw)
+        super().build(*args, **kw)
 
 
 @pytest.fixture(scope='module',

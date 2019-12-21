@@ -34,10 +34,10 @@ class IPTables(Daemon):
                       executed. If a rule is an iterable of strings,
                       these will be joined using a space."""
         defaults.rules = []
-        super(IPTables, self).set_defaults(defaults)
+        super().set_defaults(defaults)
 
     def build(self):
-        cfg = super(IPTables, self).build()
+        cfg = super().build()
         table_name = attrgetter('table')
         cfg.rules = {k: [str(x) for x in v]
                      for k, v in groupby(sorted(self.options.rules,
@@ -61,7 +61,7 @@ class Rule(object):
                       Defaults to filter."""
         self.args = list(args)
         self.table = kw.get('table', 'filter')
-        super(Rule, self).__init__()
+        super().__init__()
 
     def __str__(self):
         return ' '.join(self.args)

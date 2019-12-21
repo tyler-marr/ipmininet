@@ -23,7 +23,7 @@ class IPTopo(Topo):
     def __init__(self, *args, **kwargs):
         self.overlays = []
         self.phys_interface_capture = {}
-        super(IPTopo, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def build(self, *args, **kwargs):
         for o in self.overlays:
@@ -32,7 +32,7 @@ class IPTopo(Topo):
             if not o.check_consistency(self):
                 lg.error('Consistency checks for', str(o),
                          'overlay have failed!\n')
-        super(IPTopo, self).build(*args, **kwargs)
+        super().build(*args, **kwargs)
 
     def post_build(self, net):
         """A method that will be invoced once the topology has been fully built
@@ -54,8 +54,7 @@ class IPTopo(Topo):
         """Add a host to the topology
 
            :param name: the name of the node"""
-        return HostDescription(super(IPTopo, self).addHost(str(name), **kwargs),
-                               self)
+        return HostDescription(super().addHost(str(name), **kwargs), self)
 
     def addRouter(self, name, **kwargs):
         """Add a router to the topology
@@ -138,7 +137,7 @@ class IPTopo(Topo):
 
     def hosts(self, sort=True):
         # The list is already sorted, simply filter out the routers
-        return [h for h in super(IPTopo, self).hosts(sort)
+        return [h for h in super().hosts(sort)
                 if not self.isRouter(h)]
 
     def routers(self, sort=True):
@@ -195,11 +194,11 @@ class OverlayWrapper(object):
 class NodeDescription(str):
 
     def __new__(cls, value, *args, **kwargs):
-        return super(NodeDescription, cls).__new__(cls, value)
+        return super().__new__(cls, value)
 
     def __init__(self, o, topo=None):
         self.topo = topo
-        super(NodeDescription, self).__init__()
+        super().__init__()
 
     def addDaemon(self, daemon, default_cfg_class=BasicRouterConfig,
                   cfg_daemon_list="daemons", **daemon_params):
@@ -249,7 +248,7 @@ class LinkDescription(object):
         self.dst_intf = IntfDescription(self.dst, topo, self,
                                         self.link_attrs.setdefault("params2",
                                                                    {}))
-        super(LinkDescription, self).__init__()
+        super().__init__()
 
     def __getitem__(self, item):
         if isinstance(item, int):
@@ -286,7 +285,7 @@ class IntfDescription(NodeDescription):
         self.link = link
         self.node = o
         self.intf_attrs = intf_attrs
-        super(IntfDescription, self).__init__(o, topo)
+        super().__init__(o, topo)
 
     def addParams(self, **kwargs):
         self.intf_attrs.update(kwargs)

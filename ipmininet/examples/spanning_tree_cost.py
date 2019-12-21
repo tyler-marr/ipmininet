@@ -26,4 +26,4 @@ class SpanningTreeCost(IPTopo):
         for s in self.switches():
             self.addLink(s, self.addHost('h%s' % s))
 
-        super(SpanningTreeCost, self).build(*args, **kwargs)
+        super().build(*args, **kwargs)

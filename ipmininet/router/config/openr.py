@@ -15,8 +15,7 @@ class OpenrDomain(Overlay):
         :param routers: the set of routers for which all their interfaces
                         belong to that area
         :param links: individual links belonging to this area"""
-        super(OpenrDomain, self).__init__(nodes=routers, links=links,
-                                          nprops=props)
+        super().__init__(nodes=routers, links=links, nprops=props)
         self.domain = domain
 
     @property
@@ -31,7 +30,7 @@ class OpenrDomain(Overlay):
         # Add all links for the routers
         for r in self.nodes:
             self.add_link(*topo.g[r])
-        super(OpenrDomain, self).apply(topo)
+        super().apply(topo)
 
     def __str__(self):
         return '<OpenR domain %s>' % self.domain
@@ -44,10 +43,10 @@ class Openr(OpenrDaemon):
     KILL_PATTERNS = (NAME,)
 
     def __init__(self, node, *args, **kwargs):
-        super(Openr, self).__init__(node=node, *args, **kwargs)
+        super().__init__(node=node, *args, **kwargs)
 
     def build(self):
-        cfg = super(Openr, self).build()
+        cfg = super().build()
         cfg.update(self.options)
         cfg.node_name = self._node.name
         interfaces = realIntfList(self._node)
@@ -88,7 +87,7 @@ class Openr(OpenrDaemon):
         defaults.ifname_prefix = "r"
         defaults.iface_regex_include = "r.*"
         defaults.log_dir = "/var/log"
-        super(Openr, self).set_defaults(defaults)
+        super().set_defaults(defaults)
 
     @staticmethod
     def is_active_interface(itf):

@@ -16,9 +16,9 @@ class GRETopo(IPTopo):
         for s, d in ((r1, r2), (r1, self.h1), (r2, r3), (r3, r4),
                      (r4, self.h2)):
             self.addLink(s, d)
-        super(GRETopo, self).build(*args, **kw)
+        super().build(*args, **kw)
 
     def post_build(self, net):
         GRETunnel(net[self.h1].defaultIntf(), net[self.h2].defaultIntf(),
                   '10.0.1.1/24', '10.0.1.2/24')
-        super(GRETopo, self).post_build(net)
+        super().post_build(net)

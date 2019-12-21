@@ -96,7 +96,7 @@ class StaticRoutingNetComplex(IPTopo):
             StaticRoute(prefix="2042:44::2", nexthop="2042:56::1"),
         ])
 
-        super(StaticRoutingNetComplex, self).build(*args, **kwargs)
+        super().build(*args, **kwargs)
 
     def addRouter_v6(self, name):
         return self.addRouter(name, use_v4=False, use_v6=True,

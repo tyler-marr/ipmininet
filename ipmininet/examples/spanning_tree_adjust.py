@@ -26,7 +26,7 @@ class SpanningTreeAdjust(IPTopo):
         self.l2_end = l2_end
         self.l2_cost = int(l2_cost)
 
-        super(SpanningTreeAdjust, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def build(self, *args, **kwargs):
         r"""
@@ -131,14 +131,13 @@ class SpanningTreeAdjust(IPTopo):
         for s in self.switches():
             self.addLink(s, self.addHost('h%s' % s))
 
-        super(SpanningTreeAdjust, self).build(*args, **kwargs)
+        super().build(*args, **kwargs)
 
     def addLink(self, node1, node2, port1=None, port2=None,
                 key=None, **opts):
 
-        link = super(SpanningTreeAdjust, self).addLink(node1, node2,
-                                                       port1=port1, port2=port2,
-                                                       key=key, **opts)
+        link = super().addLink(node1, node2, port1=port1, port2=port2,
+                               key=key, **opts)
 
         # Adjust STP cost if the link was in the parameters
         itfs = ["%s-eth%d" % (node1, link.link_attrs["port1"]),

@@ -35,9 +35,9 @@ class SSHd(Daemon):
         return '%s -t' % self.startup_line
 
     def set_defaults(self, defaults):
-        super(SSHd, self).set_defaults(defaults)
+        super().set_defaults(defaults)
 
     def build(self):
-        cfg = super(SSHd, self).build()
+        cfg = super().build()
         cfg.authorized_keys = PUBKEY
         return cfg

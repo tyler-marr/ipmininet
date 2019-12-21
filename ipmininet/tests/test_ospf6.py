@@ -26,7 +26,7 @@ class MinimalOSPFv3Net(IPTopo):
         :param link_params: Parameters to set on the link between r1 and r2"""
         self.ospf6_params_r1 = ospf6_params_r1
         self.link_params = link_params
-        super(MinimalOSPFv3Net, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def build(self, *args, **kwargs):
         r1 = self.addRouter("r1", config=RouterConfig)
@@ -45,7 +45,7 @@ class MinimalOSPFv3Net(IPTopo):
         self.addLink(r2, h2)
         h3 = self.addHost("h3")
         self.addLink(r3, h3)
-        super(MinimalOSPFv3Net, self).build(*args, **kwargs)
+        super().build(*args, **kwargs)
 
 
 @require_root

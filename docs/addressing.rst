@@ -30,7 +30,7 @@ Moreover, both OSPF and OSPF6 daemons are running on each router to ensure basic
             self.addLink(r1, r2)
             self.addLink(r2, h2)
 
-            super(MyTopology, self).build(*args, **kwargs)
+            super().build(*args, **kwargs)
 
     net = IPNet(topo=MyTopology())
     try:
@@ -74,7 +74,7 @@ In single stacked networks, only one of the routing daemons
             self.addLink(r1, r2)
             self.addLink(r2, h2)
 
-            super(MyTopology, self).build(*args, **kwargs)
+            super().build(*args, **kwargs)
 
     net = IPNet(topo=MyTopology(), use_v6=False)  # This disables IPv6
     try:
@@ -102,7 +102,7 @@ In single stacked networks, only one of the routing daemons
             self.addLink(r1, r2)
             self.addLink(r2, h2)
 
-            super(MyTopology, self).build(*args, **kwargs)
+            super().build(*args, **kwargs)
 
     net = IPNet(topo=MyTopology(), use_v4=False)  # This disables IPv4
     try:
@@ -145,7 +145,7 @@ an OSPF (resp. OSPF6) daemon.
             self.addLink(r2, h2)
             self.addLink(r3, h3)
 
-            super(MyTopology, self).build(*args, **kwargs)
+            super().build(*args, **kwargs)
 
     net = IPNet(topo=MyTopology())
     try:
@@ -189,7 +189,7 @@ and for real interfaces of all the nodes.
             lr2h2[r2].addParams(ip=("2042:2b::2/64", "10.62.0.2/24"))
             lr2h2[r2].addParams(ip=("2042:2b::b/64", "10.62.0.6/24"))
 
-            super(MyTopology, self).build(*args, **kwargs)
+            super().build(*args, **kwargs)
 
     net = IPNet(topo=MyTopology(), allocate_IPs=False)  # Disable IP auto-allocation
     try:
@@ -225,7 +225,7 @@ You can also declare your subnets by declaring a Subnet overlay.
             self.addSubnet(nodes=[r1, h1], subnets=["2042:1a::/64", "10.51.0.0/24"])
             self.addSubnet(links=[lr1r2],  subnets=["2042:2b::/64", "10.62.0.0/24"])
 
-            super(MyTopology, self).build(*args, **kwargs)
+            super().build(*args, **kwargs)
 
     net = IPNet(topo=MyTopology(), allocate_IPs=False)  # Disable IP auto-allocation
     try:
@@ -277,7 +277,7 @@ You can change it when adding a new router to your topology.
             r2.addDaemon(STATIC, static_routes=[StaticRoute("2042:1a::/64", "2042:12::1"),
                                                 StaticRoute("10.51.0.0/24", "10.12.0.1")])
 
-            super(MyTopology, self).build(*args, **kwargs)
+            super().build(*args, **kwargs)
 
     net = IPNet(topo=MyTopology(), allocate_IPs=False)  # Disable IP auto-allocation
     try:
@@ -323,7 +323,7 @@ You can also add routes manually when the network has started since you can run 
             r2.addDaemon(STATIC, static_routes=[StaticRoute("2042:1a::/64", "2042:12::1"),
                                                 StaticRoute("10.51.0.0/24", "10.12.0.1")])
 
-            super(MyTopology, self).build(*args, **kwargs)
+            super().build(*args, **kwargs)
 
 .. testcode:: static routing 2
 

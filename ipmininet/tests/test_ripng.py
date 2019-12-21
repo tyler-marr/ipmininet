@@ -28,7 +28,7 @@ class MinimalRIPngNet(IPTopo):
     def __init__(self, is_test_flush=False, *args, **kwargs):
         self.args_test_2 = [100, 1, 1]
         self.is_test_flush = is_test_flush
-        super(MinimalRIPngNet, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def build(self, *args, **kwargs):
         r1 = self.addRouter_v6("r1")
@@ -65,7 +65,7 @@ class MinimalRIPngNet(IPTopo):
             r2.addDaemon(RIPng)
             r3.addDaemon(RIPng)
 
-        super(MinimalRIPngNet, self).build(*args, **kwargs)
+        super().build(*args, **kwargs)
 
     def addRouter_v6(self, name):
         return self.addRouter(name, use_v4=False, use_v6=True,

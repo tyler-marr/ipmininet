@@ -97,7 +97,7 @@ class StaticRoutingNetBasic(IPTopo):
             StaticRoute(prefix="2042:3c::/64", nexthop="2042:14::1"),  # h3->r1
         ])
 
-        super(StaticRoutingNetBasic, self).build(*args, **kwargs)
+        super().build(*args, **kwargs)
 
     def addRouter_v6(self, name):
         return self.addRouter(name, use_v4=False, use_v6=True,

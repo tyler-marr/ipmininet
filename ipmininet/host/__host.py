@@ -12,7 +12,7 @@ class IPHost(IPNode):
     def __init__(self, name,
                  config=HostConfig,
                  *args, **kwargs):
-        super(IPHost, self).__init__(name, config=config, *args, **kwargs)
+        super().__init__(name, config=config, *args, **kwargs)
 
 
 CPULimitedHost = _m.CPULimitedHost

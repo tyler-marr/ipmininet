@@ -34,4 +34,4 @@ class SpanningTreeBus(IPTopo):
         for s in (s1, s2, s3):
             self.addLink(s, self.addHost('h%s' % s))
 
-        super(SpanningTreeBus, self).build(*args, **kwargs)
+        super().build(*args, **kwargs)

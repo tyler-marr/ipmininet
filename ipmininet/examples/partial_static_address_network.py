@@ -46,4 +46,4 @@ class PartialStaticAddressNet(IPTopo):
 
         self.addSubnet(links=[lr1r2], subnets=["192.168.0.0/24", "fc00::/64"])
 
-        super(PartialStaticAddressNet, self).build(*args, **kwargs)
+        super().build(*args, **kwargs)
