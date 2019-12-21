@@ -30,10 +30,10 @@ class LinkTopo(IPTopo):
 
 
 @pytest.fixture(scope='module',
-                params=[[ip_interface(u'192.168.1.2/24')],
-                        [ip_interface(u'2001:db8:ff::d/48')],
-                        [ip_interface(u'192.168.1.2/24'),
-                         ip_interface(u'2001:db8:ff::d/48')],
+                params=[[ip_interface('192.168.1.2/24')],
+                        [ip_interface('2001:db8:ff::d/48')],
+                        [ip_interface('192.168.1.2/24'),
+                         ip_interface('2001:db8:ff::d/48')],
                         ])
 def dummy_interface(request):
     if itf in ip('link'):

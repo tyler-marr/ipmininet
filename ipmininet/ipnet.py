@@ -30,10 +30,10 @@ class IPNet(Mininet):
                  router=Router,
                  config=BasicRouterConfig,
                  use_v4=True,
-                 ipBase=u'192.168.0.0/16',
+                 ipBase='192.168.0.0/16',
                  max_v4_prefixlen=24,
                  use_v6=True,
-                 ip6Base=u'fc00::/7',
+                 ip6Base='fc00::/7',
                  allocate_IPs=True,
                  max_v6_prefixlen=48,
                  igp_metric=MIN_IGP_METRIC,
@@ -644,7 +644,7 @@ class BroadcastDomain(object):
         try:
             addr = self.net[self._allocated_v4]
             self._allocated_v4 += 1
-            return ip_interface(u'%s/%d' % (addr, self.net.prefixlen))
+            return ip_interface('%s/%d' % (addr, self.net.prefixlen))
         except IndexError:
             raise ValueError('No more available IPv4 address')
         except TypeError:
@@ -658,7 +658,7 @@ class BroadcastDomain(object):
         try:
             addr = self.net6[self._allocated_v6]
             self._allocated_v6 += 1
-            return ip_interface(u'%s/%d' % (addr, self.net6.prefixlen))
+            return ip_interface('%s/%d' % (addr, self.net6.prefixlen))
         except IndexError:
             raise ValueError('No more available IPv6 address')
         except TypeError:

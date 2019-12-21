@@ -9,30 +9,30 @@ from ipmininet.tests import require_root
 
 
 @pytest.mark.parametrize("unsorted_list,sorted_list", [
-    ([u"10.0.0.1/8", u"2001::1/16"],
-     [u"2001::1/16", u"10.0.0.1/8"]),  # V4 before V6
-    ([u"2001::1/16", u"10.0.0.1/8"],
-     [u"2001::1/16", u"10.0.0.1/8"]),  # V4 before V6
-    ([u"fe80::/16", u"::1/128"],
-     [u"fe80::/16", u"::1/128"]),  # Link-local before loopback
-    ([u"::1/128", u"fe80::/16"],
-     [u"fe80::/16", u"::1/128"]),  # Link-local before loopback
-    ([u"fe80::/16", u"2001::1/16"],
-     [u"2001::1/16", u"fe80::/16"]),  # Global before link-local
-    ([u"2001::1/16", u"fe80::/16"],
-     [u"2001::1/16", u"fe80::/16"]),  # Global before link-local
-    ([u"10.0.0.1/8", u"100.64.0.1/32"],
-     [u"100.64.0.1/32", u"10.0.0.1/8"]),  # Public before private
-    ([u"100.64.0.1/32", u"10.0.0.1/8"],
-     [u"100.64.0.1/32", u"10.0.0.1/8"]),  # Public before private
-    ([u"2001::1/16", u"2002::1/16"],
-     [u"2002::1/16", u"2001::1/16"]),  # Bigger network value first
-    ([u"2002::1/16", u"2001::1/16"],
-     [u"2002::1/16", u"2001::1/16"]),  # Bigger network value first
-    ([u"2001::1/16", u"2001::2/16"],
-     [u"2001::2/16", u"2001::1/16"]),  # Bigger IP value first
-    ([u"2001::2/16", u"2001::1/16"],
-     [u"2001::2/16", u"2001::1/16"]),  # Bigger IP value first
+    (["10.0.0.1/8", "2001::1/16"],
+     ["2001::1/16", "10.0.0.1/8"]),  # V4 before V6
+    (["2001::1/16", "10.0.0.1/8"],
+     ["2001::1/16", "10.0.0.1/8"]),  # V4 before V6
+    (["fe80::/16", "::1/128"],
+     ["fe80::/16", "::1/128"]),  # Link-local before loopback
+    (["::1/128", "fe80::/16"],
+     ["fe80::/16", "::1/128"]),  # Link-local before loopback
+    (["fe80::/16", "2001::1/16"],
+     ["2001::1/16", "fe80::/16"]),  # Global before link-local
+    (["2001::1/16", "fe80::/16"],
+     ["2001::1/16", "fe80::/16"]),  # Global before link-local
+    (["10.0.0.1/8", "100.64.0.1/32"],
+     ["100.64.0.1/32", "10.0.0.1/8"]),  # Public before private
+    (["100.64.0.1/32", "10.0.0.1/8"],
+     ["100.64.0.1/32", "10.0.0.1/8"]),  # Public before private
+    (["2001::1/16", "2002::1/16"],
+     ["2002::1/16", "2001::1/16"]),  # Bigger network value first
+    (["2002::1/16", "2001::1/16"],
+     ["2002::1/16", "2001::1/16"]),  # Bigger network value first
+    (["2001::1/16", "2001::2/16"],
+     ["2001::2/16", "2001::1/16"]),  # Bigger IP value first
+    (["2001::2/16", "2001::1/16"],
+     ["2001::2/16", "2001::1/16"]),  # Bigger IP value first
 ])
 def test_ordered_address(unsorted_list, sorted_list):
     unsorted_list = [ip_interface(ip) for ip in unsorted_list]

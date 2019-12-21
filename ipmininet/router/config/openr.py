@@ -60,8 +60,8 @@ class Openr(OpenrDaemon):
         """Return the list of OpenR networks to advertize from the list of
         active OpenR interfaces"""
         # Check that we have at least one IPv4 network on that interface ...
-        return [OpenrNetwork(domain=ip_interface(
-            u'%s/%s' % (i.ip, i.prefixLen))) for i in interfaces if i.ip]
+        return [OpenrNetwork(domain=ip_interface('%s/%s' % (i.ip, i.prefixLen)))
+                for i in interfaces if i.ip]
 
     def _build_interfaces(self, interfaces):
         """Return the list of OpenR interface properties from the list of

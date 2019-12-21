@@ -434,7 +434,7 @@ if they fit in its domain name. Otherwise, another zone will be created.
 
             # Change the TTL of one PTR record and the retry_time of its zone
             ptr_record = PTRRecord("fc00::2", h3 + ".mydomain.org", ttl=120)
-            reverse_domain_name = ip_address(u"fc00::").reverse_pointer[-10:]  # keeps "f.ip6.arpa"
+            reverse_domain_name = ip_address("fc00::").reverse_pointer[-10:]  # keeps "f.ip6.arpa"
             self.addDNSZone(name=reverse_domain_name, dns_master=dns_master, dns_slaves=[dns_slave],
                             records=[ptr_record], ns_domain_name="mydomain.org", retry_time=8200)
 

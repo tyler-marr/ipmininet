@@ -20,7 +20,7 @@ import mako.exceptions
 
 from mininet.log import lg as log
 
-last_routerid = ip_address(u'0.0.0.1')
+last_routerid = ip_address('0.0.0.1')
 
 __TEMPLATES_DIR = os.path.join(os.path.dirname(__file__), 'templates')
 router_template_lookup = TemplateLookup(directories=[__TEMPLATES_DIR])

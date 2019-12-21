@@ -113,7 +113,7 @@ class Subnet(Overlay):
                 for value in self.node_links[node]:
                     attrs = value
 
-                    addr = u'%s/%d' % (subnet[i+1], subnet.prefixlen)
+                    addr = '%s/%d' % (subnet[i+1], subnet.prefixlen)
                     addrs = tuple(attrs.get("ip", tuple()))
                     attrs["ip"] = addrs + (addr,)
 

@@ -14,7 +14,7 @@ from . import require_root
 
 
 @pytest.mark.parametrize('address', [
-    u'::/0', u'0.0.0.0/0', u'1.2.3.0/24', u'2001:db8:1234::/48'
+    '::/0', '0.0.0.0/0', '1.2.3.0/24', '2001:db8:1234::/48'
 ])
 def test_nested_ip_networks(address):
     """This test ensures that we can build an IPvXNetwork from another one.
@@ -31,21 +31,21 @@ def test_nested_ip_networks(address):
 
 
 @pytest.mark.parametrize("test_input,expected", [
-    (u"255.255.0.0", 16),
-    (u"f000::", 4),
-    (u"ffff::", 16),
-    (u"128.0.0.0", 1),
-    (u"fe00::", 7)
+    ("255.255.0.0", 16),
+    ("f000::", 4),
+    ("ffff::", 16),
+    ("128.0.0.0", 1),
+    ("fe00::", 7)
 ])
 def test_prefix_for_netmask(test_input, expected):
     assert utils.prefix_for_netmask(test_input) == expected
 
 
 @pytest.mark.parametrize("test_input,expected", [
-    (u'0.0.0.1', 1),
-    (u'0.0.128.0', 128 << 8),
-    (u'0.0.123.3', (123 << 8) + 3),
-    (u'::f:1', (0xf << 16) + 1)
+    ('0.0.0.1', 1),
+    ('0.0.128.0', 128 << 8),
+    ('0.0.123.3', (123 << 8) + 3),
+    ('::f:1', (0xf << 16) + 1)
 ])
 def test_ipaddress_endianness(test_input, expected):
     """Checks int(ipaddress) endianness"""
@@ -94,9 +94,9 @@ def test_require_cmd(cmd, present):
 
 
 @pytest.mark.parametrize("node,use_v4,use_v6,expected", [
-    ("h1", True, True, (u"10.0.0.2", u"2001:1a::2")),
-    ("h1", False, True, (None, u"2001:1a::2")),
-    ("h1", True, False, (u"10.0.0.2", None)),
+    ("h1", True, True, ("10.0.0.2", "2001:1a::2")),
+    ("h1", False, True, (None, "2001:1a::2")),
+    ("h1", True, False, ("10.0.0.2", None)),
     ("h1", False, False, (None, None)),
 ])
 @require_root
@@ -140,18 +140,18 @@ def test_find_node(start, node, present):
 @pytest.mark.parametrize("test_input,expected", [
     (4, "ip"),
     (6, "ipv6"),
-    (u"10.0.0.1", "ip"),
-    (u"10.0.0.0/8", "ip"),
-    (u"10.0.0.1/8", "ip"),
-    (u"2042::1", "ipv6"),
-    (u"2042::/16", "ipv6"),
-    (u"2042::1/16", "ipv6"),
-    (ipaddress.ip_address(u"10.0.0.1"), "ip"),
-    (ipaddress.ip_network(u"10.0.0.0/8"), "ip"),
-    (ipaddress.ip_interface(u"10.0.0.1/8"), "ip"),
-    (ipaddress.ip_address(u"2042::1"), "ipv6"),
-    (ipaddress.ip_network(u"2042::/16"), "ipv6"),
-    (ipaddress.ip_interface(u"2042::1/16"), "ipv6"),
+    ("10.0.0.1", "ip"),
+    ("10.0.0.0/8", "ip"),
+    ("10.0.0.1/8", "ip"),
+    ("2042::1", "ipv6"),
+    ("2042::/16", "ipv6"),
+    ("2042::1/16", "ipv6"),
+    (ipaddress.ip_address("10.0.0.1"), "ip"),
+    (ipaddress.ip_network("10.0.0.0/8"), "ip"),
+    (ipaddress.ip_interface("10.0.0.1/8"), "ip"),
+    (ipaddress.ip_address("2042::1"), "ipv6"),
+    (ipaddress.ip_network("2042::/16"), "ipv6"),
+    (ipaddress.ip_interface("2042::1/16"), "ipv6"),
 ])
 def test_ip_statement(test_input, expected):
     assert ip_statement(test_input) == expected

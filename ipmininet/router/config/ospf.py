@@ -60,8 +60,7 @@ class OSPF(QuaggaDaemon):
         """Return the list of OSPF networks to advertize from the list of
         active OSPF interfaces"""
         # Check that we have at least one IPv4 network on that interface ...
-        return [OSPFNetwork(domain=ip_interface(
-            u'%s/%s' % (i.ip, i.prefixLen)),
+        return [OSPFNetwork(domain=ip_interface('%s/%s' % (i.ip, i.prefixLen)),
                             area=i.igp_area) for i in interfaces if i.ip]
 
     def _build_interfaces(self, interfaces):

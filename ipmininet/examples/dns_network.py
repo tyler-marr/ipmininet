@@ -61,7 +61,7 @@ class DNSNetwork(IPTopo):
         # match or another reverse zone will be created.
         ptr_record = PTRRecord("fc00::2", server + ".mydomain.org", ttl=120)
         # reverse_domain_name is "f.ip6.arpa"
-        reverse_domain_name = ip_address(u"fc00::").reverse_pointer[-10:]
+        reverse_domain_name = ip_address("fc00::").reverse_pointer[-10:]
         self.addDNSZone(name=reverse_domain_name, dns_master=master,
                         dns_slaves=[slave], records=[ptr_record],
                         ns_domain_name="mydomain.org", retry_time=8200)

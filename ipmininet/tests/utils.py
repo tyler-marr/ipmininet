@@ -97,7 +97,7 @@ def host_connected(net, v6=False, timeout=0.5, translate_address=True):
                 cmd = "nmap%s -sn -n --max-retries 0 --max-rtt-timeout %dms %s"\
                       % (" -6" if v6 else "", int(timeout * 1000), dst_ip)
                 out = src.cmd(cmd.split(" "))
-                if u"0 hosts up" in out:
+                if "0 hosts up" in out:
                     return False
                 # In case of flooding, hosts might not answer
                 # So, we wait a bit before testing the next pair of hosts

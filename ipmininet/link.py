@@ -155,7 +155,7 @@ class IPIntf(_m.Intf):
             if isinstance(addr, basestring):
                 if '/' not in addr and prefixLen is not None:
                     # And use the default prefix if absent
-                    addr = ip_interface(u'%s/%s' % (addr, prefixLen))
+                    addr = ip_interface('%s/%s' % (addr, prefixLen))
                 else:
                     # no prefixLen defaults to full /128 or /32
                     addr = ip_interface(str(addr))

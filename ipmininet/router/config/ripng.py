@@ -35,8 +35,8 @@ class RIPng(QuaggaDaemon):
     def _build_networks(interfaces):
         """Return the list of RIP networks to advertize from the list of
         active RIP interfaces"""
-        return [RIPNetwork(domain=ip_interface(
-            u'%s/%s' % (i.ip6, i.prefixLen6))) for i in interfaces if i.ip6]
+        return [RIPNetwork(domain=ip_interface('%s/%s' % (i.ip6, i.prefixLen6)))
+                for i in interfaces if i.ip6]
 
     def _build_interfaces(self, interfaces):
         """Return the list of RIP interface properties from the list of
@@ -46,7 +46,7 @@ class RIPng(QuaggaDaemon):
                            # Is the interface between two routers?
                            active=self.is_active_interface(i),
                            cost=i.igp_metric - 1,
-                           domain=ip_interface(u'%s/%s'
+                           domain=ip_interface('%s/%s'
                                                % (i.ip6, i.prefixLen6)))
                 for i in interfaces]
 
