@@ -74,7 +74,7 @@ def address_pair(n, use_v4=True, use_v6=True):
 
 def is_container(x):
     """Return whether x is a container (=iterable but not a string)"""
-    return (isinstance(x, collections.Sequence) and
+    return (isinstance(x, collections.abc.Sequence) and
             not isinstance(x, str))
 
 
