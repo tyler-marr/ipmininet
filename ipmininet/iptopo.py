@@ -1,5 +1,6 @@
 """This module defines topology class that supports adding L3 routers"""
 import functools
+from typing import Union, Type, Dict, List, Optional
 
 from mininet.topo import Topo
 from mininet.log import lg
@@ -8,15 +9,17 @@ from ipmininet.overlay import Overlay, Subnet
 from ipmininet.utils import get_set
 from ipmininet.router.config import BasicRouterConfig, OSPFArea, AS,\
     iBGPFullMesh, OpenrDomain
+from ipmininet.router.config.base import Daemon, RouterConfig, NodeConfig
 from ipmininet.host.config import HostConfig, DNSZone
+from ipmininet.ipnet import IPNet
 
 
 class IPTopo(Topo):
     """A topology that supports L3 routers"""
 
     OVERLAYS = {cls.__name__: cls
-                for cls in (AS, iBGPFullMesh, OpenrDomain, OSPFArea, Subnet,
-                            DNSZone)}
+                for cls in (AS, iBGPFullMesh, OpenrDomain, OSPFArea,
+                            Subnet, DNSZone)}
 
     def __init__(self, *args, **kwargs):
         self.overlays = []
@@ -32,14 +35,14 @@ class IPTopo(Topo):
                          'overlay have failed!\n')
         super().build(*args, **kwargs)
 
-    def post_build(self, net):
-        """A method that will be invoced once the topology has been fully built
+    def post_build(self, net: IPNet):
+        """A method that will be invoked once the topology has been fully built
         and before it is started.
 
         :param net: The freshly built (Mininet) network"""
 
-    def isNodeType(self, n, x):
-        """Return wether node n has a key x set to True
+    def isNodeType(self, n: str, x) -> bool:
+        """Return whether node n has a key x set to True
 
         :param n: node name
         :param x: the key to check"""
@@ -48,21 +51,21 @@ class IPTopo(Topo):
         except KeyError:  # node not found
             return False
 
-    def addHost(self, name, **kwargs):
+    def addHost(self, name: str, **kwargs) -> 'HostDescription':
         """Add a host to the topology
 
            :param name: the name of the node"""
         return HostDescription(super().addHost(str(name), **kwargs), self)
 
-    def addRouter(self, name, **kwargs):
+    def addRouter(self, name: str, **kwargs) -> 'RouterDescription':
         """Add a router to the topology
 
         :param name: the name of the node"""
         return RouterDescription(self.addNode(str(name), isRouter=True,
                                               **kwargs), self)
 
-    def addLink(self, node1, node2, port1=None, port2=None,
-                key=None, **opts):
+    def addLink(self, node1: str, node2: str, port1=None, port2=None,
+                key=None, **opts) -> 'LinkDescription':
         """:param node1: first node to link
            :param node2: second node to link
            :param port1: port of the first node (optional)
@@ -86,7 +89,8 @@ class IPTopo(Topo):
                                            self.linkInfo(node1, node2, key))
         return link_description
 
-    def addDaemon(self, node, daemon, default_cfg_class=BasicRouterConfig,
+    def addDaemon(self, node: str, daemon: Union[Daemon, Type[Daemon]],
+                  default_cfg_class: Type[NodeConfig] = BasicRouterConfig,
                   cfg_daemon_list="daemons", **daemon_params):
         """Add the daemon to the list of daemons to start on the router.
 
@@ -111,7 +115,7 @@ class IPTopo(Topo):
         daemon_list = config_params.setdefault(cfg_daemon_list, [])
         daemon_list.append((daemon, daemon_params))
 
-    def addHub(self, name, **opts):
+    def addHub(self, name: str, **opts) -> str:
         """Convenience method: Add hub to graph.
            name: hub name
            opts: hub options
@@ -121,33 +125,33 @@ class IPTopo(Topo):
         result = self.addSwitch(name, stp=False, hub=True, **opts)
         return result
 
-    def isRouter(self, n):
+    def isRouter(self, n: str) -> bool:
         """Check whether the given node is a router
 
         :param n: node name"""
         return self.isNodeType(n, 'isRouter')
 
-    def isHub(self, n):
+    def isHub(self, n: str) -> bool:
         """Check whether the given node is a router
 
         :param n: node name"""
         return self.isNodeType(n, 'hub')
 
-    def hosts(self, sort=True):
+    def hosts(self, sort=True) -> List['HostDescription']:
         # The list is already sorted, simply filter out the routers
         return [h for h in super().hosts(sort)
                 if not self.isRouter(h)]
 
-    def routers(self, sort=True):
+    def routers(self, sort=True) -> List['RouterDescription']:
         """Return a list of router node names"""
         return [RouterDescription(n, self)
                 for n in self.nodes(sort) if self.isRouter(n)]
 
-    def hubs(self, sort=True):
+    def hubs(self, sort=True) -> List[str]:
         """Return a list of hub node names"""
         return [n for n in self.nodes(sort) if self.isHub(n)]
 
-    def addOverlay(self, overlay):
+    def addOverlay(self, overlay: Union[Overlay, Type[Overlay]]):
         """Add a new overlay on this topology"""
         if not isinstance(overlay, Overlay) and issubclass(overlay, Overlay):
             overlay = overlay()
@@ -162,26 +166,26 @@ class IPTopo(Topo):
         raise AttributeError('%s is neither a method of IPTopo'
                              ' nor refers to any known overlay' % item)
 
-    def getNodeInfo(self, n, key, default):
+    def getNodeInfo(self, n: str, key, default: Type):
         """Attempt to retrieve the information for the given node/key
         combination. If not found, set to an instance of default and return
         it"""
         return get_set(self.nodeInfo(n), key, default)
 
-    def getLinkInfo(self, l, key, default):
+    def getLinkInfo(self, link: 'LinkDescription', key, default: Type):
         """Attempt to retrieve the information for the given link/key
         combination. If not found, set to an instance of default and return
         it"""
-        return get_set(self.linkInfo(l[0], l[1]), key, default)
+        return get_set(self.linkInfo(link[0], link[1]), key, default)
 
-    def capture_physical_interface(self, intfname, node):
+    def capture_physical_interface(self, intfname: str, node: str):
         """Adds a pre-existing physical interface to the given node."""
         self.phys_interface_capture[intfname] = node
 
 
 class OverlayWrapper:
 
-    def __init__(self, topo, overlay):
+    def __init__(self, topo: IPTopo, overlay: Type[Overlay]):
         self.topo = topo
         self.overlay = overlay
 
@@ -194,11 +198,12 @@ class NodeDescription(str):
     def __new__(cls, value, *args, **kwargs):
         return super().__new__(cls, value)
 
-    def __init__(self, o, topo=None):
+    def __init__(self, o, topo: Optional[IPTopo] = None):
         self.topo = topo
         super().__init__()
 
-    def addDaemon(self, daemon, default_cfg_class=BasicRouterConfig,
+    def addDaemon(self, daemon: Union[Daemon, Type[Daemon]],
+                  default_cfg_class: Type[NodeConfig] = BasicRouterConfig,
                   cfg_daemon_list="daemons", **daemon_params):
         """Add the daemon to the list of daemons to start on the node.
 
@@ -211,23 +216,29 @@ class NodeDescription(str):
             but BasicRouterConfig uses 'additional_daemons'.
         :param daemon_params: all the parameters to give
             when instantiating the daemon class."""
-
+        if self.topo is None:
+            return
         self.topo.addDaemon(self, daemon, default_cfg_class=default_cfg_class,
                             cfg_daemon_list=cfg_daemon_list, **daemon_params)
 
-    def get_config(self, daemon, **kwargs):
-        return daemon.get_config(topo=self.topo, router=self, **kwargs)
+    def get_config(self, daemon: Union[Daemon, Type[Daemon]], **kwargs):
+        if self.topo is None:
+            return
+        return daemon.get_config(topo=self.topo, node=self, **kwargs)
 
 
 class RouterDescription(NodeDescription):
-    def addDaemon(self, daemon, default_cfg_class=BasicRouterConfig, **kwargs):
+    def addDaemon(self, daemon: Union[Daemon, Type[Daemon]],
+                  default_cfg_class: Type[RouterConfig] = BasicRouterConfig,
+                  **kwargs):
         super(RouterDescription, self)\
             .addDaemon(daemon, default_cfg_class=default_cfg_class, **kwargs)
 
 
 class HostDescription(NodeDescription):
 
-    def addDaemon(self, daemon, default_cfg_class=HostConfig, **kwargs):
+    def addDaemon(self, daemon: Union[Daemon, Type[Daemon]],
+                  default_cfg_class: Type[HostConfig] = HostConfig, **kwargs):
         super(HostDescription, self)\
             .addDaemon(daemon, default_cfg_class=default_cfg_class, **kwargs)
 
@@ -235,7 +246,7 @@ class HostDescription(NodeDescription):
 @functools.total_ordering
 class LinkDescription:
 
-    def __init__(self, topo, src, dst, key, link_attrs):
+    def __init__(self, topo: IPTopo, src: str, dst: str, key, link_attrs: Dict):
         self.src = src
         self.dst = dst
         self.key = key
@@ -279,7 +290,8 @@ class LinkDescription:
 
 class IntfDescription(NodeDescription):
 
-    def __init__(self, o, topo, link, intf_attrs):
+    def __init__(self, o: str, topo: IPTopo, link: LinkDescription,
+                 intf_attrs: Dict):
         self.link = link
         self.node = o
         self.intf_attrs = intf_attrs

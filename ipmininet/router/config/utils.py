@@ -1,5 +1,6 @@
 """This modules contains various utilities to streamline config generation"""
-from ipaddress import ip_interface
+from ipaddress import ip_interface, IPv6Address, IPv4Address
+from typing import Union
 
 
 class ConfigDict(dict):
@@ -28,7 +29,7 @@ class ConfigDict(dict):
         self[key] = value
 
 
-def ip_statement(ip):
+def ip_statement(ip: Union[int, str, IPv6Address, IPv4Address]):
     """Return the zebra ip statement for a given ip prefix
 
     :type ip: ip_interface, ip_network, ip_address, int, str"""

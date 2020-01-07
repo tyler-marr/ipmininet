@@ -1,6 +1,8 @@
 """Base classes to configure an OSPF daemon"""
-from ipaddress import ip_interface
+from ipaddress import ip_interface, IPv4Network
+from typing import Sequence, List
 
+from ipmininet.link import IPIntf
 from ipmininet.overlay import Overlay
 from ipmininet.utils import otherIntf, L3Router
 from .utils import ConfigDict
@@ -10,7 +12,8 @@ from .zebra import QuaggaDaemon, Zebra
 class OSPFArea(Overlay):
     """An overlay to group OSPF links and routers by area"""
 
-    def __init__(self, area, routers=(), links=(), **props):
+    def __init__(self, area: str, routers: Sequence[str] = (),
+                 links: Sequence[str] = (), **props):
         """:param area: the area for this overlay
         :param routers: the set of routers for which all their interfaces
                         belong to that area
@@ -19,11 +22,11 @@ class OSPFArea(Overlay):
         self.area = area
 
     @property
-    def area(self):
+    def area(self) -> str:
         return self.links_properties['igp_area']
 
     @area.setter
-    def area(self, x):
+    def area(self, x: str):
         self.links_properties['igp_area'] = x
 
     def apply(self, topo):
@@ -56,14 +59,14 @@ class OSPF(QuaggaDaemon):
         return cfg
 
     @staticmethod
-    def _build_networks(interfaces):
+    def _build_networks(interfaces: List[IPIntf]) -> List['OSPFNetwork']:
         """Return the list of OSPF networks to advertize from the list of
         active OSPF interfaces"""
         # Check that we have at least one IPv4 network on that interface ...
         return [OSPFNetwork(domain=ip_interface('%s/%s' % (i.ip, i.prefixLen)),
                             area=i.igp_area) for i in interfaces if i.ip]
 
-    def _build_interfaces(self, interfaces):
+    def _build_interfaces(self, interfaces: List[IPIntf]) -> List[ConfigDict]:
         """Return the list of OSPF interface properties from the list of
         active interfaces"""
         return [ConfigDict(description=i.describe,
@@ -94,7 +97,7 @@ class OSPF(QuaggaDaemon):
         super().set_defaults(defaults)
 
     @staticmethod
-    def is_active_interface(itf):
+    def is_active_interface(itf) -> bool:
         """Return whether an interface is active or not for the OSPF daemon"""
         return L3Router.is_l3router_intf(otherIntf(itf))
 
@@ -102,7 +105,7 @@ class OSPF(QuaggaDaemon):
 class OSPFNetwork:
     """A class holding an OSPF network properties"""
 
-    def __init__(self, domain, area):
+    def __init__(self, domain: IPv4Network, area: str):
         self.domain = domain
         self.area = area
 
@@ -110,7 +113,7 @@ class OSPFNetwork:
 class OSPFRedistributedRoute:
     """A class representing a redistributed route type in OSPF"""
 
-    def __init__(self, subtype, metric_type=1, metric=1000):
+    def __init__(self, subtype: str, metric_type=1, metric=1000):
         self.subtype = subtype
         self.metric_type = metric_type
         self.metric = metric

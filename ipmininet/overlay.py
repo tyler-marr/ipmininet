@@ -1,8 +1,13 @@
 from collections import defaultdict
 from builtins import str
+from typing import List, Sequence, Tuple, Optional, Dict, TYPE_CHECKING, Any, \
+    Mapping
 
 from ipaddress import ip_network
 from mininet.log import lg
+
+if TYPE_CHECKING:
+    from ipmininet.iptopo import IPTopo
 
 
 class Overlay:
@@ -14,7 +19,9 @@ class Overlay:
     node -> node name
     link -> (node1 name, node2 name)."""
 
-    def __init__(self, nodes=(), links=(), nprops=None, lprops=None):
+    def __init__(self, nodes: Sequence[str] = (),
+                 links: Sequence[str] = (), nprops: Optional[Dict] = None,
+                 lprops: Optional[Dict] = None):
         """:param nodes: The nodes in this overlay
         :param links: the links in this overlay
         :param nprops: the properties shared by all nodes in this overlay
@@ -23,10 +30,10 @@ class Overlay:
         self.links = list(links)
         self.nodes_properties = {} if not nprops else nprops
         self.links_properties = {} if not lprops else lprops
-        self.per_link_properties = defaultdict(dict)
-        self.per_node_properties = defaultdict(dict)
+        self.per_link_properties = defaultdict(dict)  # type: Mapping
+        self.per_node_properties = defaultdict(dict)  # type: Mapping
 
-    def apply(self, topo):
+    def apply(self, topo: 'IPTopo'):
         """Apply the Overlay properties to the given topology"""
         # First set the common properties, then the element-specific ones
         for n in self.nodes:
@@ -34,37 +41,37 @@ class Overlay:
         for l in self.links:
             topo.linkInfo(l[0], l[1]).update(self.link_property(l))
 
-    def check_consistency(self, topo):
+    def check_consistency(self, topo: 'IPTopo') -> bool:
         """Check that this overlay is consistent"""
         return True
 
-    def add_node(self, *node):
+    def add_node(self, *node: str):
         """Add one or more nodes to this overlay"""
         self.nodes.extend(node)
 
-    def add_link(self, *link):
+    def add_link(self, *link: str):
         """Add one or more link to this overlay"""
         self.links.extend(link)
 
-    def node_property(self, n):
+    def node_property(self, n: str) -> Dict:
         """Return the properties for the given node"""
         p = self.nodes_properties.copy()
         p.update(self.per_node_properties[n])
         return p
 
-    def set_node_property(self, n, key, val):
+    def set_node_property(self, n: str, key, val):
         """Set the property of a given node"""
         self.per_node_properties[n][key] = val
 
-    def link_property(self, l):
+    def link_property(self, link: str) -> Dict:
         """Return the properties for the given link"""
         p = self.links_properties.copy()
-        p.update(self.per_link_properties[l])
+        p.update(self.per_link_properties[link])
         return p
 
-    def set_link_property(self, n, key, val):
+    def set_link_property(self, link: str, key, val):
         """Set the property of a given link"""
-        self.per_link_properties[n][key] = val
+        self.per_link_properties[link][key] = val
 
 
 class Subnet(Overlay):
@@ -117,7 +124,7 @@ class Subnet(Overlay):
                     addrs = tuple(attrs.get("ip", tuple()))
                     attrs["ip"] = addrs + (addr,)
 
-    def _check_subnets(self):
+    def _check_subnets(self) -> bool:
         """
         :return: True if there is enough addresses in each subnet
          for each node in the overlay and that each subnet is valid
@@ -130,13 +137,14 @@ class Subnet(Overlay):
                              % (subnet, len(self.nodes)))
                     return False
         except ValueError as e:
-            lg.error("One of the subnet is invalid: %s\n" % e.message)
+            lg.error("One of the subnet is invalid: %s\n" % e)
             return False
         return True
 
     @staticmethod
-    def _build_adjacency_list(topo):
-        adjacencies = {}
+    def _build_adjacency_list(topo: 'IPTopo') \
+            -> Dict[str, List[Tuple[str, str, Any, Dict]]]:
+        adjacencies = {}  # type: Dict[str, List[Tuple[str, str, Any, Dict]]]
         for src, dst, k, attrs in topo.iterLinks(withInfo=True, withKeys=True):
             adjacencies.setdefault(src, [])\
                 .append((src, dst, k, attrs.setdefault("params2", {})))
@@ -144,7 +152,7 @@ class Subnet(Overlay):
                 .append((dst, src, k, attrs.setdefault("params1", {})))
         return adjacencies
 
-    def _find_nodes_in_lan(self, topo, nodes):
+    def _find_nodes_in_lan(self, topo: 'IPTopo', nodes: List[str]) -> bool:
         """Checks that all nodes are in one same LAN.
         It also fills a map for each node name, the link on which an address
         should be set

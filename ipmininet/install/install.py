@@ -50,7 +50,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def install_mininet(output_dir, pip_install=True):
+def install_mininet(output_dir: str, pip_install=True):
     dist.install("git")
 
     if dist.NAME == "Fedora":
@@ -71,7 +71,7 @@ def install_mininet(output_dir, pip_install=True):
         dist.pip_install("mininet/", cwd=output_dir)
 
 
-def install_libyang(output_dir):
+def install_libyang(output_dir: str):
 
     packages = []
 
@@ -100,7 +100,7 @@ def install_libyang(output_dir):
            cwd=output_dir)
 
 
-def install_frrouting(output_dir):
+def install_frrouting(output_dir: str):
     dist.install("autoconf", "automake", "libtool", "make", "gcc", "groff",
                  "patch", "make", "bison", "flex", "gawk", "texinfo",
                  "python3-pytest")
@@ -152,7 +152,7 @@ def install_frrouting(output_dir):
         break
 
 
-def install_openr(output_dir, openr_release=OpenrRelease,
+def install_openr(output_dir: str, openr_release=OpenrRelease,
                   openr_remote="https://github.com/facebook/openr.git"):
     dist.install("git")
     openr_install = os.path.join(output_dir, "openr")

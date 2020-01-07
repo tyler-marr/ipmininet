@@ -1,6 +1,8 @@
 """Base classes to configure a RIP daemon"""
-from ipaddress import ip_interface
+from ipaddress import ip_interface, IPv6Interface
+from typing import List
 
+from ipmininet.link import IPIntf
 from ipmininet.utils import otherIntf, L3Router
 from .utils import ConfigDict
 from .zebra import QuaggaDaemon, Zebra
@@ -32,13 +34,13 @@ class RIPng(QuaggaDaemon):
         return cfg
 
     @staticmethod
-    def _build_networks(interfaces):
+    def _build_networks(interfaces: List[IPIntf]) -> List['RIPNetwork']:
         """Return the list of RIP networks to advertize from the list of
         active RIP interfaces"""
         return [RIPNetwork(domain=ip_interface('%s/%s' % (i.ip6, i.prefixLen6)))
                 for i in interfaces if i.ip6]
 
-    def _build_interfaces(self, interfaces):
+    def _build_interfaces(self, interfaces: List[IPIntf]) -> List[ConfigDict]:
         """Return the list of RIP interface properties from the list of
         active interfaces"""
         return [ConfigDict(description=i.describe,
@@ -76,7 +78,7 @@ class RIPng(QuaggaDaemon):
         super().set_defaults(defaults)
 
     @staticmethod
-    def is_active_interface(itf):
+    def is_active_interface(itf) -> bool:
         """Return whether an interface is active or not for the OSPF daemon"""
         return L3Router.is_l3router_intf(otherIntf(itf))
 
@@ -84,13 +86,13 @@ class RIPng(QuaggaDaemon):
 class RIPNetwork:
     """A class holding an RIP network properties"""
 
-    def __init__(self, domain):
+    def __init__(self, domain: IPv6Interface):
         self.domain = domain
 
 
 class RIPRedistributedRoute:
     """A class representing a redistributed route type in RIP"""
 
-    def __init__(self, subtype, metric=1000):
+    def __init__(self, subtype: str, metric=1000):
         self.subtype = subtype
         self.metric = metric

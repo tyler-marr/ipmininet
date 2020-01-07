@@ -1,12 +1,15 @@
 """This modules defines a L3 router class,
    with a modular config system."""
+import subprocess
 import sys
 import time
+from ipaddress import IPv4Interface, IPv6Interface
+from typing import Type, Optional, Tuple, Union, Dict, List, Sequence, Set
 
 from ipmininet import DEBUG_FLAG
 from ipmininet.utils import L3Router, realIntfList, otherIntf
 from ipmininet.link import IPIntf
-from .config import BasicRouterConfig, NodeConfig
+from .config import BasicRouterConfig, NodeConfig, RouterConfig
 
 import mininet.clean
 from mininet.node import Node, Host
@@ -20,20 +23,20 @@ class ProcessHelper:
     currently in a mininet namespace, but could be extended to execute in
     a different environment."""
 
-    def __init__(self, node, *args, **kwargs):
+    def __init__(self, node: 'IPNode'):
         """:param node: The object to use to create subprocesses."""
         self.node = node
         self._pid_gen = 0
-        self._processes = {}
+        self._processes = {}  # type: Dict[int, subprocess.Popen]
 
-    def call(self, *args, **kwargs):
+    def call(self, *args, **kwargs) -> Optional[str]:
         """Call a command, wait for it to end and return its output.
 
         :param args: the command + arguments
         :param kwargs: key-val arguments, as used in subprocess.Popen"""
         return self.node.cmd(*args, **kwargs)
 
-    def popen(self, *args, **kwargs):
+    def popen(self, *args, **kwargs) -> int:
         """Call a command and return a Popen handle to it.
 
         :param args: the command + arguments
@@ -43,7 +46,7 @@ class ProcessHelper:
         self._processes[self._pid_gen] = self.node.popen(*args, **kwargs)
         return self._pid_gen
 
-    def pexec(self, *args, **kw):
+    def pexec(self, *args, **kw) -> Tuple[str, str, int]:
         """Call a command, wait for it to terminate and save stdout, stderr and
         its return code"""
         return self.node.pexec(*args, **kw)
@@ -66,10 +69,11 @@ class ProcessHelper:
 class IPNode(Node):
     """A Node which manages a set of daemons"""
 
-    def __init__(self, name,
-                 config=NodeConfig,
+    def __init__(self, name: str,
+                 config: Union[Type[NodeConfig],
+                               Tuple[Type[NodeConfig], Dict]] = NodeConfig,
                  cwd='/tmp',
-                 process_manager=ProcessHelper,
+                 process_manager: Type[ProcessHelper] = ProcessHelper,
                  use_v4=True,
                  use_v6=True,
                  *args, **kwargs):
@@ -87,10 +91,14 @@ class IPNode(Node):
         self.use_v4 = use_v4
         self.use_v6 = use_v6
         self.cwd = cwd
-        self._old_sysctl = {}
-        try:
-            self.nconfig = config[0](self, **config[1])
-        except (TypeError, IndexError):
+        self._old_sysctl = {}  # type: Dict[str, Union[str, int]]
+        if isinstance(config, tuple):
+            try:
+                self.nconfig = config[0](self, **config[1])
+            except ValueError:
+                lg.error("Expected a tuple (class, kwargs) for the config "
+                         "parameter but got instead %s" % str(config))
+        else:
             self.nconfig = config(self)
         self._processes = process_manager(self)
 
@@ -132,11 +140,13 @@ class IPNode(Node):
             self._set_sysctl(opt, val)
         super().terminate()
 
-    def _set_sysctl(self, key, val):
+    def _set_sysctl(self, key: str, val: Union[str, int]):
         """Change a sysctl value, and return the previous set value"""
         try:
-            v = self._processes.call('sysctl', key)\
-                    .split('=')[1]\
+            v = None
+            out = self._processes.call('sysctl', key)
+            if out is not None:
+                v = out.split('=')[1]\
                     .strip(' \n\t\r')
         except IndexError:
             v = None
@@ -148,11 +158,11 @@ class IPNode(Node):
         """Check for a given key in the node parameters"""
         return self.params.get(key, val)
 
-    def network_ips(self):
+    def network_ips(self) -> Dict[str, List[str]]:
         """Return all the addresses of the nodes connected directly or not
         to this node"""
-        ips = {}
-        visited = set()
+        ips = {}  # type: Dict[str, List[str]]
+        visited = set()  # type: Set[str]
         to_visit = [self]
         while to_visit:
             node = to_visit.pop()
@@ -176,9 +186,12 @@ class Router(IPNode, L3Router):
     """The actual router, which manages a set of daemons"""
 
     def __init__(self, name,
-                 config=BasicRouterConfig,
+                 config: Union[Type[RouterConfig],
+                               Tuple[Type[RouterConfig],
+                                     Dict]] = BasicRouterConfig,
                  password='zebra',
-                 lo_addresses=(),
+                 lo_addresses: Sequence[Union[str, IPv4Interface,
+                                              IPv6Interface]] = (),
                  *args, **kwargs):
         """:param password: The password for the routing daemons vtysh access
            :param lo_addresses: The list of addresses to set on the loopback
@@ -192,5 +205,5 @@ class Router(IPNode, L3Router):
         lo.ip = lo_addresses
 
     @property
-    def asn(self):
+    def asn(self) -> int:
         return self.get('asn')

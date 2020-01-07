@@ -2,11 +2,12 @@ import os
 import shlex
 import subprocess
 import sys
+from typing import Optional, Type, List
 
 from distutils.spawn import find_executable
 
 
-def sh(*cmds, **kwargs):
+def sh(*cmds, **kwargs) -> Optional[subprocess.Popen]:
     if 'stdout' not in kwargs:
         kwargs['stdout'] = subprocess.PIPE
     if 'stderr' not in kwargs:
@@ -41,16 +42,16 @@ def sh(*cmds, **kwargs):
 
 
 class Distribution:
-    NAME = None
-    INSTALL_CMD = None
-    UPDATE_CMD = None
+    NAME = None  # type: Optional[str]
+    INSTALL_CMD = None  # type: Optional[str]
+    UPDATE_CMD = None  # type: Optional[str]
     PIP_CMD = "pip"
     SpinPipVersion = "18.1"
 
     def __init__(self):
         self.pip_args = self.check_pip_version(self.PIP_CMD)
 
-    def check_pip_version(self, pip):
+    def check_pip_version(self, pip: str) -> str:
         from pkg_resources import parse_version
 
         if find_executable(pip) is None:
@@ -70,13 +71,14 @@ class Distribution:
             print("Cannot retrieve version number of %s" % pip)
             sys.exit(1)
 
-    def install(self, *packages):
-        sh(self.INSTALL_CMD + " " + " ".join(packages))
+    def install(self, *packages: str):
+        if self.INSTALL_CMD:
+            sh(self.INSTALL_CMD + " " + " ".join(packages))
 
     def update(self):
         sh(self.UPDATE_CMD)
 
-    def pip_install(self, *packages, **kwargs):
+    def pip_install(self, *packages: str, **kwargs):
         if find_executable(self.PIP_CMD) is not None:
             sh(self.PIP_CMD + " -q install " + self.pip_args
                + " ".join(packages), **kwargs)
@@ -107,11 +109,11 @@ class Fedora(Distribution):
     PIP_CMD = "pip"
 
 
-def supported_distributions():
+def supported_distributions() -> List[Type]:
     return Distribution.__subclasses__()
 
 
-def identify_distribution():
+def identify_distribution() -> Optional[Distribution]:
     try:
         subprocess.check_call(shlex.split("grep Ubuntu /etc/lsb-release"))
         return Ubuntu()

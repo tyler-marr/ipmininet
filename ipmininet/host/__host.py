@@ -1,5 +1,6 @@
 """This modules defines a host class,
    with a modular config system."""
+from typing import Type, Union, Tuple, Dict
 
 import mininet.node as _m
 
@@ -11,7 +12,8 @@ class IPHost(IPNode):
     """A Host which manages a set of daemons"""
 
     def __init__(self, name,
-                 config=HostConfig,
+                 config: Union[Type[HostConfig],
+                               Tuple[Type[HostConfig], Dict]] = HostConfig,
                  *args, **kwargs):
         super().__init__(name, config=config, *args, **kwargs)
 

@@ -36,14 +36,14 @@ class IPCLI(CLI):
         self.initReadline()
         self.run()
 
-    def do_route(self, line=""):
+    def do_route(self, line: str = ""):
         """route destination: Print all the routes towards that destination
         for every router in the network"""
         for r in self.mn.routers:
             lg.output("[%s] " % r.name)
             self.default('%s ip route get %s' % (r.name, line))
 
-    def do_ip(self, line):
+    def do_ip(self, line: str):
         """ip IP1 IP2 ...: return the node associated to the given IP"""
         for ip in line.split(' '):
             try:
@@ -53,7 +53,7 @@ class IPCLI(CLI):
             finally:
                 lg.output(ip, '|', n, "\n")
 
-    def do_ips(self, line):
+    def do_ips(self, line: str):
         """ips n1 n2 ...: return the ips associated to the given node name"""
         for n in line.split(' '):
             try:
@@ -81,7 +81,7 @@ class IPCLI(CLI):
         """Ping (IPv6-only) between first two hosts, useful for testing."""
         self.mn.ping6Pair()
 
-    def default(self, line):
+    def default(self, line: str):
         """Called on an input line when the command prefix is not recognized.
         Overridden to run shell commands when a node is the first CLI argument.
         Past the first CLI argument, node names are automatically replaced with

@@ -1,4 +1,5 @@
-from ipaddress import ip_address
+from ipaddress import ip_address, IPv6Network, IPv6Address
+from typing import Sequence, Union
 
 from ipmininet.utils import find_node
 from ipmininet.utils import realIntfList
@@ -14,7 +15,8 @@ DEFAULT_ADV_RDNSS_LIFETIME = 25
 class AdvPrefix(ConfigDict):
     """The class representing advertised prefixes in a Router Advertisement"""
 
-    def __init__(self, prefix=(), valid_lifetime=RA_DEFAULT_VALID,
+    def __init__(self, prefix: Sequence[Union[str, IPv6Network]] = (),
+                 valid_lifetime=RA_DEFAULT_VALID,
                  preferred_lifetime=RA_DEFAULT_PREF):
         """:param prefix: the list of IPv6 prefixes to advertise
            :param valid_lifetime: corresponds to the AdvValidLifetime
@@ -44,7 +46,8 @@ class AdvRDNSS(ConfigDict):
     """The class representing an advertised DNS server in a
     Router Advertisement"""
 
-    def __init__(self, node, max_lifetime=DEFAULT_ADV_RDNSS_LIFETIME):
+    def __init__(self, node: Union[str, IPv6Address],
+                 max_lifetime=DEFAULT_ADV_RDNSS_LIFETIME):
         """:param node: Either the IPv6 address of the DNS server
                         or the node name
            :param max_lifetime: corresponds to the AdvValidLifetime

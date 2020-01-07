@@ -22,7 +22,8 @@ class PIMD(QuaggaDaemon):
                        ssm=itf.get('multicast_ssm', self.options.multicast_ssm),
                        igmp=itf.get('multicast_igmp',
                                     self.options.multicast_igmp))
-            for itf in realIntfList(self._node) if itf.enable_multicast]
+            for itf in realIntfList(self._node) if itf.get("enable_multicast",
+                                                           False)]
         return cfg
 
     def set_defaults(self, defaults):

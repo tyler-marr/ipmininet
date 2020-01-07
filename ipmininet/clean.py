@@ -1,5 +1,6 @@
 import time
 from subprocess import check_output, CalledProcessError
+from typing import List
 
 import mininet.clean as mnclean
 from mininet.log import lg as log
@@ -9,13 +10,13 @@ import ipmininet.host.config as host_daemons
 from .utils import is_container
 
 
-def cleanup(level='info'):
+def cleanup(level: str = 'info'):
     """Cleanup all possible junk that we may have started."""
     log.setLogLevel(level)
     # Standard mininet cleanup
     mnclean.cleanup()
     # Cleanup any leftover daemon
-    patterns = []
+    patterns = []  # type: List[str]
     for package in [router_daemons, host_daemons]:
         for d in package.__all__:
             obj = getattr(package, d, None)

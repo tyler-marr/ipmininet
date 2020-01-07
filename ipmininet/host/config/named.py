@@ -1,7 +1,8 @@
 """Base classes to configure a Named daemon"""
 import os
 
-import ipaddress
+from typing import List, Union, Sequence, Optional
+from ipaddress import IPv4Address, IPv6Address, ip_address
 from mininet.log import lg
 
 from ipmininet.overlay import Overlay
@@ -50,10 +51,18 @@ class Named(HostDaemon):
         self.build_reverse_zone(cfg.zones)
         return cfg
 
-    def build_zone(self, zone):
+    def build_zone(self, zone: 'DNSZone') -> ConfigDict:
         master_ips = []
         for s_name in zone.servers + [zone.dns_master] + zone.dns_slaves:
-            server = find_node(self._node, s_name).node
+            server_itf = find_node(self._node, s_name)
+            if server_itf is None:
+                lg.error("Cannot find the server node {name} of DNS zone"
+                         " {zone}. Are you sure that they are connected to "
+                         "the current node {current}?"
+                         .format(name=s_name, zone=zone.name,
+                                 current=self._node.name))
+                continue
+            server = server_itf.node
             for itf in realIntfList(server):
                 for ip in itf.ips():
                     if ".arpa" not in zone.name:  # Not a Reverse zone
@@ -62,12 +71,12 @@ class Named(HostDaemon):
                     if s_name == zone.dns_master:
                         master_ips.append(ip.ip.compressed)
 
-                for ip in itf.ip6s(exclude_lls=True):
+                for ip6 in itf.ip6s(exclude_lls=True):
                     if ".arpa" not in zone.name:  # Not a Reverse zone
-                        zone.soa_record.add_record(AAAARecord(s_name,
-                                                              ip.ip.compressed))
+                        zone.soa_record.add_record(
+                            AAAARecord(s_name, ip6.ip.compressed))
                     if s_name == zone.dns_master:
-                        master_ips.append(ip.ip.compressed)
+                        master_ips.append(ip6.ip.compressed)
 
         return ConfigDict(name=zone.soa_record.domain_name,
                           soa_record=zone.soa_record,
@@ -75,7 +84,7 @@ class Named(HostDaemon):
                           master=self._node.name == zone.dns_master,
                           master_ips=master_ips)
 
-    def build_reverse_zone(self, cfg_zones):
+    def build_reverse_zone(self, cfg_zones: ConfigDict):
         """
         Build non-existing PTR records. Then, adds them to an existing reverse
         zone if any. The remaining ones are inserted in a new reverse zone
@@ -123,7 +132,9 @@ class Named(HostDaemon):
         if len(ptr_v4_records) > 0:
             self.build_largest_reverse_zone(cfg_zones, ptr_v4_records)
 
-    def build_largest_reverse_zone(self, cfg_zones, records):
+    def build_largest_reverse_zone(self, cfg_zones: ConfigDict,
+                                   records: List[Union['PTRRecord',
+                                                       'NSRecord']]):
         """
         Create the ConfigDict object representing a new reverse zone whose
         prefix is the largest one that includes all the PTR records.
@@ -183,7 +194,7 @@ class Named(HostDaemon):
         defaults.dns_server_port = 53
         super().set_defaults(defaults)
 
-    def zone_filename(self, domain_name):
+    def zone_filename(self, domain_name: str) -> str:
         return self._file(suffix='%s.cfg' % domain_name)
 
     @property
@@ -201,7 +212,7 @@ class Named(HostDaemon):
 
 class DNSRecord:
 
-    def __init__(self, rtype, domain_name, ttl=60):
+    def __init__(self, rtype: str, domain_name: str, ttl=60):
         self.rtype = rtype
         self.domain_name = domain_name
         self.ttl = ttl
@@ -211,11 +222,11 @@ class DNSRecord:
             self.domain_name = self.domain_name + "."
 
     @property
-    def rdata(self):
+    def rdata(self) -> str:
         return ""
 
     @property
-    def full_domain_name(self):
+    def full_domain_name(self) -> bool:
         return "." in self.domain_name
 
     def __eq__(self, other):
@@ -226,8 +237,9 @@ class DNSRecord:
 
 class ARecord(DNSRecord):
 
-    def __init__(self, domain_name, address, ttl=60):
-        self.address = ipaddress.ip_address(str(address))
+    def __init__(self, domain_name,
+                 address: Union[str, IPv4Address, IPv6Address], ttl=60):
+        self.address = ip_address(str(address))
         rtype = "A" if self.address.version == 4 else "AAAA"
         super().__init__(rtype=rtype, domain_name=domain_name, ttl=ttl)
 
@@ -242,8 +254,9 @@ class AAAARecord(ARecord):
 
 class PTRRecord(DNSRecord):
 
-    def __init__(self, address, domain_name, ttl=60):
-        self.address = ipaddress.ip_address(str(address))
+    def __init__(self, address: Union[str, IPv4Address, IPv6Address],
+                 domain_name: str, ttl=60):
+        self.address = ip_address(str(address))
         self.mapped_domain_name = domain_name
         if self.mapped_domain_name[-1] != "." \
                 and "." in self.mapped_domain_name:
@@ -262,7 +275,7 @@ class PTRRecord(DNSRecord):
 
 class NSRecord(DNSRecord):
 
-    def __init__(self, domain_name, name_server, ttl=60):
+    def __init__(self, domain_name, name_server: str, ttl=60):
         super().__init__(rtype="NS", domain_name=domain_name, ttl=ttl)
         self.name_server = name_server
         if "." not in self.name_server:
@@ -281,7 +294,7 @@ class SOARecord(DNSRecord):
 
     def __init__(self, domain_name, refresh_time=DNS_REFRESH,
                  retry_time=DNS_RETRY, expire_time=DNS_EXPIRE,
-                 min_ttl=DNS_MIN_TTL, records=()):
+                 min_ttl=DNS_MIN_TTL, records: Sequence[DNSRecord] = ()):
         super().__init__(rtype="SOA", domain_name=domain_name, ttl=min_ttl)
         self.refresh_time = refresh_time
         self.retry_time = retry_time
@@ -301,17 +314,19 @@ class SOARecord(DNSRecord):
     def records(self):
         return self._records
 
-    def add_record(self, record):
+    def add_record(self, record: DNSRecord):
         if record not in self._records:
             self._records.append(record)
 
 
 class DNSZone(Overlay):
 
-    def __init__(self, name, dns_master, dns_slaves=(), records=(), nodes=(),
+    def __init__(self, name: str, dns_master: str,
+                 dns_slaves: Sequence[str] = (),
+                 records: Sequence[DNSRecord] = (), nodes: Sequence[str] = (),
                  refresh_time=DNS_REFRESH, retry_time=DNS_RETRY,
                  expire_time=DNS_EXPIRE, min_ttl=DNS_MIN_TTL,
-                 ns_domain_name=None):
+                 ns_domain_name: Optional[str] = None):
         """
         :param name: The domain name of the zone
         :param dns_master: The name of the master DNS server

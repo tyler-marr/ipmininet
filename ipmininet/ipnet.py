@@ -3,19 +3,22 @@ This modules will auto-generate all needed configuration properties if
 unspecified by the user"""
 import math
 from operator import attrgetter, methodcaller
+from typing import Union, List, Optional, Type, Iterable, Mapping, Tuple, \
+    Iterator, Dict, Set
 
-from ipaddress import ip_network, ip_interface
+from ipaddress import ip_network, ip_interface, IPv4Address, IPv6Address, \
+    IPv4Network, IPv6Network, IPv4Interface, IPv6Interface
 
 from . import MIN_IGP_METRIC, OSPF_DEFAULT_AREA
 from .utils import otherIntf, realIntfList, L3Router, address_pair, has_cmd
 from .host import IPHost
 from .router import Router
-from .router.config import BasicRouterConfig
+from .router.config import BasicRouterConfig, RouterConfig
 from .link import IPIntf, IPLink, PhysicalInterface
 from .ipswitch import IPSwitch
 
 from mininet.net import Mininet
-from mininet.node import Host
+from mininet.node import Host, Controller, Node
 from mininet.log import lg as log
 
 # ping6 is not provided by default on newer systems
@@ -25,8 +28,8 @@ PING6_CMD = 'ping6' if has_cmd('ping6') else 'ping -6'
 class IPNet(Mininet):
     """IPNet: An IP-aware Mininet"""
     def __init__(self,
-                 router=Router,
-                 config=BasicRouterConfig,
+                 router: Type[Router] = Router,
+                 config: Type[RouterConfig] = BasicRouterConfig,
                  use_v4=True,
                  ipBase='192.168.0.0/16',
                  max_v4_prefixlen=24,
@@ -36,11 +39,11 @@ class IPNet(Mininet):
                  max_v6_prefixlen=48,
                  igp_metric=MIN_IGP_METRIC,
                  igp_area=OSPF_DEFAULT_AREA,
-                 host=IPHost,
-                 link=IPLink,
-                 intf=IPIntf,
-                 switch=IPSwitch,
-                 controller=None,
+                 host: Type[IPHost] = IPHost,
+                 link: Type[IPLink] = IPLink,
+                 intf: Type[IPIntf] = IPIntf,
+                 switch: Type[IPSwitch] = IPSwitch,
+                 controller: Optional[Type[Controller]] = None,
                  *args, **kwargs):
         """Extends Mininet by adding IP-related ivars/functions and
         configuration knobs.
@@ -59,8 +62,9 @@ class IPNet(Mininet):
         :param igp_area: The default IGP area for the links"""
         self.router = router
         self.config = config
-        self.routers = []  # the list of router in the network
-        self._ip_allocs = {}  # We need this to be able to do inverse-lookups
+        self.routers = []  # type: List[Router]
+        # We need this to be able to do inverse-lookups
+        self._ip_allocs = {}  # type: Dict[str, Node]
         self.max_v4_prefixlen = max_v4_prefixlen
         self._unallocated_ipbase = [ip_network(ipBase)]
         self.use_v4 = use_v4
@@ -72,11 +76,11 @@ class IPNet(Mininet):
         self.igp_metric = igp_metric
         self.igp_area = igp_area
         self.allocate_IPs = allocate_IPs
-        self.physical_interface = {}  # itf: node
+        self.physical_interface = {}  # type: Dict[IPIntf, Node]
         super().__init__(ipBase=ipBase, host=host, switch=switch, link=link,
                          intf=intf, controller=controller, *args, **kwargs)
 
-    def addRouter(self, name, cls=None, **params):
+    def addRouter(self, name: str, cls=None, **params) -> Router:
         """Add a router to the network
 
         :param name: the node name
@@ -109,10 +113,12 @@ class IPNet(Mininet):
         self.physical_interface.update(topo.phys_interface_capture)
         super().buildFromTopo(topo)
 
-    def addLink(self, node1, node2,
-                igp_metric=None, igp_area=None, igp_passive=False,
+    def addLink(self, node1: Node, node2: Node,
+                igp_metric: Optional[int] = None,
+                igp_area: Optional[str] = None,
+                igp_passive=False,
                 v4_width=1, v6_width=1,
-                *args, **params):
+                *args, **params) -> IPLink:
         """Register a link with additional properties
 
         :param igp_metric: the associated igp metric for this link
@@ -151,7 +157,7 @@ class IPNet(Mininet):
                     p[k] = v
         return super().addLink(node1=node1, node2=node2, *args, **params)
 
-    def addHost(self, name, **params):
+    def addHost(self, name: str, **params) -> IPHost:
         """Prevent Mininet from forcing the allocation of IPv4 addresses
            on hosts. We delegate it to the address auto-allocation of
            IPNet."""
@@ -159,7 +165,7 @@ class IPNet(Mininet):
             params['ip'] = None
         return super().addHost(name, **params)
 
-    def node_for_ip(self, ip):
+    def node_for_ip(self, ip: Union[str, IPv4Address, IPv6Address]) -> Node:
         """Return the node owning a given IP address
 
         :param ip: an IP address
@@ -233,14 +239,18 @@ class IPNet(Mininet):
         except AttributeError as e:
             log.error('*** Skipping post_build():', e, '\n')
 
-    def _allocated_ipv4_subnets(self):
-        subnets = []
+    def _allocated_ipv4_subnets(self) -> List[IPv4Network]:
+        subnets = []  # type: List[IPv4Network]
+        if self.broadcast_domains is None:
+            return []
         for d in self.broadcast_domains:
             subnets.extend(d.fixed_net4s)
         return subnets
 
-    def _allocated_ipv6_subnets(self):
-        subnets = []
+    def _allocated_ipv6_subnets(self) -> List[IPv6Network]:
+        subnets = []  # type: List[IPv6Network]
+        if self.broadcast_domains is None:
+            return []
         for d in self.broadcast_domains:
             subnets.extend(d.fixed_net6s)
         return subnets
@@ -296,9 +306,12 @@ class IPNet(Mininet):
                     self._ip_allocs[ip.ip.compressed] = intf.node
 
     @staticmethod
-    def _allocate_subnets(subnets, domains, domainlen='len_v4',
-                          net_key='net', size_key='max_v4prefixlen',
-                          max_prefixlen=24, allocated_subnets=()):
+    def _allocate_subnets(subnets: List[Union[IPv4Network, IPv6Network]],
+                          domains: List['BroadcastDomain'],
+                          domainlen='len_v4', net_key='net',
+                          size_key='max_v4prefixlen', max_prefixlen=24,
+                          allocated_subnets: Iterable[Union[IPv4Network,
+                                                            IPv6Network]] = ()):
         """Allocate subnets to broadcast domains.
 
         We keep the subnets sorted as x < y wrt the available number of
@@ -376,7 +389,7 @@ class IPNet(Mininet):
                     break
                 # Otherwise try the next network for the current domain
 
-    def _broadcast_domains(self):
+    def _broadcast_domains(self) -> List['BroadcastDomain']:
         """Build the broadcast domains for this topology"""
         domains = []
         interfaces = {intf: False
@@ -397,7 +410,9 @@ class IPNet(Mininet):
             domains.append(bd)
         return domains
 
-    def _ping_set(self, src, dst_dict, timeout, v4=True):
+    def _ping_set(self, src: Node,
+                  dst_dict: Mapping[Node, Union[IPv4Address, IPv6Address, str]],
+                  timeout: Optional[str], v4=True) -> Tuple[int, int]:
         """Do the actual ping to the dict of {dst: dst_ip} from src
 
            :param src: origin of the ping
@@ -425,7 +440,8 @@ class IPNet(Mininet):
 
         return lost, packets
 
-    def ping(self, hosts=None, timeout=None, use_v4=True, use_v6=True):
+    def ping(self, hosts: Optional[List[Node]] = None,
+             timeout: Optional[str] = None, use_v4=True, use_v6=True) -> float:
         """Ping between all specified hosts.
            If use_v4 is true, pings over IPv4 are used between any pair of
            hosts having at least one IPv4 address on one of their interfaces
@@ -442,9 +458,10 @@ class IPNet(Mininet):
                     self.use_v4 is set the loss percentage of IPv6 connectivity
                     otherwise"""
         packets = lost = 0
-        if not hosts:
-            hosts = self.hosts
-        incompatible_hosts = {}
+        host_list = self.hosts
+        if hosts is not None:
+            host_list = hosts
+        incompatible_hosts = {}  # type: Dict[str, Set[str]]
         if not use_v4 and not use_v6:
             log.output("*** Warning: Parameters forbid both IPv4 and IPv6 for "
                        "pings\n")
@@ -454,11 +471,11 @@ class IPNet(Mininet):
                    % ("IPv4" if use_v4 else "",
                       " and " if use_v4 and use_v6 else "",
                       "IPv6" if use_v6 else ""))
-        for src in hosts:
+        for src in host_list:
             src_ip, src_ip6 = address_pair(src, use_v4, use_v6)
             ping_dict = {}
             ping6_dict = {}
-            for dst in hosts:
+            for dst in host_list:
                 if src != dst:
                     dst_ip, dst_ip6 = address_pair(dst, src_ip is not None,
                                                    src_ip6 is not None)
@@ -497,7 +514,7 @@ class IPNet(Mininet):
 
         return ploss
 
-    def pingAll(self, timeout=None, use_v4=True, use_v6=True):
+    def pingAll(self, timeout: Optional[str] = None, use_v4=True, use_v6=True):
         """Ping between all hosts.
            return: ploss packet loss percentage"""
         return self.ping(timeout=timeout, use_v4=use_v4, use_v6=use_v6)
@@ -508,7 +525,7 @@ class IPNet(Mininet):
         hosts = [self.hosts[0], self.hosts[1]]
         return self.ping(hosts=hosts, use_v4=use_v4, use_v6=use_v6)
 
-    def ping4All(self, timeout=None):
+    def ping4All(self, timeout: Optional[str] = None):
         """Ping (IPv4-only) between all hosts.
            return: ploss packet loss percentage"""
         return self.pingAll(timeout=timeout, use_v6=False)
@@ -518,7 +535,7 @@ class IPNet(Mininet):
            return: ploss packet loss percentage"""
         return self.pingPair(use_v6=False)
 
-    def ping6All(self, timeout=None):
+    def ping6All(self, timeout: Optional[str] = None):
         """Ping (IPv6-only) between all hosts.
            return: ploss packet loss percentage"""
         return self.pingAll(timeout=timeout, use_v4=False)
@@ -538,15 +555,15 @@ class BroadcastDomain:
     # FIXME Where do we put middleboxes in this model ?
     BOUNDARIES = (Host, IPHost, Router)
 
-    def __init__(self, interfaces=None, *args, **kwargs):
+    def __init__(self, interfaces: Union[None, List[IPIntf], IPIntf] = None):
         """Initialize the broadcast domain and optionally explore a set of
         interfaces
 
         :param interfaces: one Intf or a list of Intf"""
-        self.interfaces = set()
-        self.net = None
+        self.interfaces = set()  # type: Set[IPIntf]
+        self.net = None  # type: Optional[IPv4Network]
         self._allocated_v4 = 1  # We need to skip subnet address
-        self.net6 = None
+        self.net6 = None  # type: Optional[IPv6Network]
         # self._allocated_v6 = 0  # We can use the full address space
         self._allocated_v6 = 1  # FIXME null-addresses are routed directly
         # to the routers loopback .. Might be a bug in the netns code.
@@ -556,8 +573,8 @@ class BroadcastDomain:
             self.explore(interfaces)
 
         # Retrieve pre-fixed subnets
-        self.fixed_net4s = []
-        self.fixed_net6s = []
+        self.fixed_net4s = []  # type: List[IPv4Network]
+        self.fixed_net6s = []  # type: List[IPv6Network]
         for i in self.interfaces:
             for ip in i.ips():
                 net = ip_interface(ip).network
@@ -569,33 +586,33 @@ class BroadcastDomain:
                     self.fixed_net6s.append(net6)
 
     @staticmethod
-    def is_domain_boundary(node):
+    def is_domain_boundary(node: Node):
         """Check whether the node is a L3 broadcast domain boundary
 
         :param node: a Node instance"""
         return isinstance(node, BroadcastDomain.BOUNDARIES)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[IPIntf]:
         """Iterates over all interfaces in this broadcast domain"""
         return iter(self.interfaces)
 
-    def len_v4(self):
+    def len_v4(self) -> int:
         """The number of IPv4 addresses in this broadcast domain"""
         return sum(map(lambda x: x.interface_width[0]
                        if len(list(x.ips())) > 0 else 0, self.interfaces))
 
-    def len_v6(self):
+    def len_v6(self) -> int:
         """The number of IPv6 addresses in this broadcast domain"""
         return sum(map(lambda x: x.interface_width[1]
                        if len(list(x.ip6s(exclude_lls=True))) > 0 else 0,
                        self.interfaces))
 
-    def explore(self, itfs):
+    def explore(self, itfs: List[IPIntf]):
         """Explore a new list of interfaces and add them and their neighbors
         to this broadcast domain
 
         :param itfs: a list of Intf"""
-        visited = []
+        visited = []  # type: List[IPIntf]
         while itfs:
             # Explore one element
             i = itfs.pop()
@@ -617,52 +634,52 @@ class BroadcastDomain:
                              if x is not other])
 
     @property
-    def max_v4prefixlen(self):
+    def max_v4prefixlen(self) -> int:
         """Return the maximal IPv4 prefix suitable for this domain"""
         # IPv4 reserves 2 addresses for broadcast/subnet addresses
         return 32 - math.ceil(math.log(2 + self.len_v4(), 2))
 
     @property
-    def max_v6prefixlen(self):
+    def max_v6prefixlen(self) -> int:
         """Return the maximal IPv6 prefix suitable for this domain"""
         # IPv6 should use whole subnet space for addressing
         # But see FIXME in constructor
         return 128 - math.ceil(math.log(1 + self.len_v6(), 2))
 
     @property
-    def routers(self):
+    def routers(self) -> List[IPIntf]:
         """List all interfaces in this domain belonging to a L3 router"""
         return [i for i in self.interfaces if L3Router.is_l3router_intf(i)]
 
-    def next_ipv4(self):
+    def next_ipv4(self) -> IPv4Interface:
         """Allocate and return the next available IPv4 address in this
         domain
 
         :return ip_interface:"""
+        if self.net is None:
+            raise ValueError('No associated IPv4 subnet')
         try:
             addr = self.net[self._allocated_v4]
             self._allocated_v4 += 1
             return ip_interface('%s/%d' % (addr, self.net.prefixlen))
         except IndexError:
             raise ValueError('No more available IPv4 address')
-        except TypeError:
-            raise ValueError('No associated IPv4 subnet')
 
-    def next_ipv6(self):
+    def next_ipv6(self) -> IPv6Interface:
         """Allocate and return the next available IPv6 address in this
         domain
 
         :return ip_interface:"""
+        if self.net6 is None:
+            raise ValueError('No associated IPv6 subnet')
         try:
             addr = self.net6[self._allocated_v6]
             self._allocated_v6 += 1
             return ip_interface('%s/%d' % (addr, self.net6.prefixlen))
         except IndexError:
             raise ValueError('No more available IPv6 address')
-        except TypeError:
-            raise ValueError('No associated IPv6 subnet')
 
-    def use_ip_version(self, ip_version):
+    def use_ip_version(self, ip_version) -> bool:
         """ Checks whether it makes sense to allocate a subnet
         of an IP version to this domain. If there is no other node
         allowing it, there is no point in allocating an address

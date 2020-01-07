@@ -2,18 +2,23 @@ import pytest
 import re
 import signal
 import time
+from typing import List, Tuple, Dict, Pattern, Match, Optional
 
 import mininet.log
 from io import StringIO
 from ipaddress import ip_address, ip_network
 from ipmininet.utils import require_cmd
+from ipmininet.ipnet import IPNet
+from ipmininet.router import IPNode
+from ipmininet.ipswitch import IPSwitch
+from ipmininet.host.config.named import DNSRecord
 
 
-def traceroute(net, src, dst_ip, timeout=300):
+def traceroute(net: IPNet, src: str, dst_ip: str, timeout=300) -> List[str]:
     require_cmd("traceroute", help_str="traceroute is required to run tests")
 
     t = 0
-    old_path_ips = []
+    old_path_ips = []  # type: List[str]
     same_path_count = 0
     white_space = re.compile(r" +")
     while t != timeout / 5.:
@@ -40,12 +45,13 @@ def traceroute(net, src, dst_ip, timeout=300):
     return []
 
 
-def assert_path(net, expected_path, v6=False, retry=5, timeout=300):
+def assert_path(net: IPNet, expected_path: List[str], v6=False, retry=5,
+                timeout=300):
     src = expected_path[0]
     dst = expected_path[-1]
     dst_ip = net[dst].defaultIntf().ip6 if v6 else net[dst].defaultIntf().ip
 
-    path = []
+    path = []  # type: List[str]
     i = 0
     while path != expected_path and i < retry:
         path_ips = traceroute(net, src, dst_ip, timeout=timeout)
@@ -74,7 +80,8 @@ def assert_path(net, expected_path, v6=False, retry=5, timeout=300):
                                   % (src, dst, expected_path[1:-1], path[1:-1])
 
 
-def host_connected(net, v6=False, timeout=0.5, translate_address=True):
+def host_connected(net: IPNet, v6=False, timeout=0.5, translate_address=True) \
+        -> bool:
     require_cmd("nmap", help_str="nmap is required to run tests")
 
     for src in net.hosts:
@@ -87,7 +94,7 @@ def host_connected(net, v6=False, timeout=0.5, translate_address=True):
                         else dst.defaultIntf().ip
                 else:
                     dst_ip = dst
-                cmd = "nmap%s -sn -n --max-retries 0 --max-rtt-timeout %dms %s"\
+                cmd = "nmap%s -sn -n --max-retries 5 --max-rtt-timeout %dms %s"\
                       % (" -6" if v6 else "", int(timeout * 1000), dst_ip)
                 out = src.cmd(cmd.split(" "))
                 if "0 hosts up" in out:
@@ -98,7 +105,8 @@ def host_connected(net, v6=False, timeout=0.5, translate_address=True):
     return True
 
 
-def assert_connectivity(net, v6=False, attempts=120, translate_address=True):
+def assert_connectivity(net: IPNet, v6=False, attempts=300,
+                        translate_address=True):
     t = 0
     while t != attempts \
             and not host_connected(net, v6=v6,
@@ -109,8 +117,9 @@ def assert_connectivity(net, v6=False, attempts=120, translate_address=True):
         "Cannot ping all hosts over %s" % ("IPv4" if not v6 else "IPv6")
 
 
-def check_tcp_connectivity(client, server, v6=False, server_port=80,
-                           server_itf=None, timeout=300):
+def check_tcp_connectivity(client: IPNode, server: IPNode, v6=False,
+                           server_port=80, server_itf=None, timeout=300) \
+        -> Tuple[int, bytes, bytes]:
     require_cmd("nc", help_str="nc is required to run tests")
 
     if server_itf is None:
@@ -139,7 +148,8 @@ def check_tcp_connectivity(client, server, v6=False, server_port=80,
     return code, out, err
 
 
-def assert_stp_state(switch, expected_states, timeout=60):
+def assert_stp_state(switch: IPSwitch, expected_states: Dict[str, str],
+                     timeout=60):
     """
     :param switch: The switch to test
     :param expected_states: Dictionary mapping an interface name to
@@ -179,7 +189,8 @@ def assert_stp_state(switch, expected_states, timeout=60):
             % (itf, switch.name, expected_states[itf], state_map[itf])
 
 
-def assert_routing_table(router, expected_prefixes, timeout=120):
+def assert_routing_table(router: IPNode, expected_prefixes: List[str],
+                         timeout=120):
     """
     :param router: The router to test
     :param expected_prefixes: The list of prefixes to be in the routing table
@@ -202,7 +213,8 @@ def assert_routing_table(router, expected_prefixes, timeout=120):
     assert len(prefixes) == 0
 
 
-def search_dns_reply(reply, regex):
+def search_dns_reply(reply: str, regex: Pattern) \
+        -> Tuple[bool, Optional[Match]]:
 
     got_answer = False
     for line in reply.split("\n"):
@@ -217,7 +229,8 @@ def search_dns_reply(reply, regex):
     return got_answer, None
 
 
-def assert_dns_record(node, dns_server_address, record, port=53, timeout=60):
+def assert_dns_record(node: IPNode, dns_server_address: str, record: DNSRecord,
+                      port=53, timeout=60):
     require_cmd("dig", help_str="dig is required to run tests")
 
     server_cmd = "dig @{address} -p {port} -t {rtype} {domain_name}"\
@@ -250,11 +263,11 @@ def assert_dns_record(node, dns_server_address, record, port=53, timeout=60):
 
 class CLICapture:
 
-    def __init__(self, loglevel):
+    def __init__(self, loglevel: str):
         self.loglevel = loglevel
         self.stream = None
         self.handler = None
-        self.out = []
+        self.out = []  # type: List[str]
 
     def __enter__(self):
         self.stream = StringIO()

@@ -1,5 +1,7 @@
 import os
 import socket
+from ipaddress import IPv4Network, IPv6Network
+from typing import Optional, Union, Sequence, Tuple
 
 from .base import RouterDaemon
 from .utils import ConfigDict
@@ -83,7 +85,7 @@ class Zebra(QuaggaDaemon):
         # and until wa can connect to it
         return os.path.exists(self.zebra_socket) and self.listening()
 
-    def listening(self):
+    def listening(self) -> bool:
         sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         try:
             sock.connect(self.zebra_socket)
@@ -98,7 +100,8 @@ class CommunityList:
     # Number of CmL
     count = 0
 
-    def __init__(self, name=None, action=PERMIT, community=0):
+    def __init__(self, name: Optional[str] = None, action=PERMIT,
+                 community: Union[int, str] = 0):
         """
 
         :param name:
@@ -117,7 +120,8 @@ class CommunityList:
 class AccessListEntry:
     """A zebra access-list entry"""
 
-    def __init__(self, prefix, action=PERMIT):
+    def __init__(self, prefix: Union[str, IPv4Network, IPv6Network],
+                 action=PERMIT):
         """:param prefix: The ip_interface prefix for that ACL entry
         :param action: Whether that prefix belongs to the ACL (PERMIT)
                         or not (DENY)"""
@@ -132,7 +136,9 @@ class AccessList:
     # Number of ACL
     count = 0
 
-    def __init__(self, name=None, entries=()):
+    def __init__(self, name: Optional[str] = None,
+                 entries: Sequence[Union[AccessListEntry, str, IPv4Network,
+                                         IPv6Network]] = ()):
         """Setup a new access-list
 
         :param name: The name of the acl, which will default to acl## where ##
@@ -155,7 +161,7 @@ class RouteMapMatchCond:
     A class representing a RouteMap matching condition
     """
 
-    def __init__(self, cond_type, condition):
+    def __init__(self, cond_type: str, condition):
         """
         :param condition: Can be an ip address, the id of an access
                           or prefix list
@@ -175,7 +181,7 @@ class RouteMapSetAction:
     A class representing a RouteMap set action
     """
 
-    def __init__(self, action_type, value):
+    def __init__(self, action_type: str, value):
         """
         :param action_type: Type of value to me modified
         :param value: Value to be modified
@@ -194,9 +200,13 @@ class RouteMap:
     # Number of route maps
     count = 0
 
-    def __init__(self, name=None, match_policy=PERMIT, match_cond=(),
-                 set_actions=(), call_action=None, exit_policy=None,
-                 order=10, proto=(), neighbor=(), direction='in'):
+    def __init__(self, name: Optional[str] = None, match_policy=PERMIT,
+                 match_cond: Sequence[Union[RouteMapMatchCond, Tuple]] = (),
+                 set_actions: Sequence[Union[RouteMapSetAction, Tuple]] = (),
+                 call_action: Optional[str] = None,
+                 exit_policy: Optional[str] = None, order=10,
+                 proto: Sequence[str] = (), neighbor: Sequence = (),
+                 direction='in'):
         """
         :param name: The name of the route-map, defaulting to rm##
         :param match_policy: Deny or permit the actions if the route match

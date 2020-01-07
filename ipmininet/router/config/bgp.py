@@ -1,14 +1,21 @@
 """Base classes to configure a BGP daemon"""
 import heapq
+from typing import Sequence, TYPE_CHECKING, Optional, Union, Tuple, List, Set
 
 import itertools
 
-from ipaddress import ip_network, ip_address
+from ipaddress import ip_network, ip_address, IPv4Network, IPv6Network
 
+from ipmininet.link import IPIntf
 from ipmininet.overlay import Overlay
 from ipmininet.utils import realIntfList
 from .zebra import QuaggaDaemon, Zebra, RouteMap, AccessList, \
     RouteMapMatchCond, CommunityList, RouteMapSetAction, PERMIT, DENY
+
+if TYPE_CHECKING:
+    from ipmininet.iptopo import IPTopo, RouterDescription
+    from ipmininet.router import Router
+
 
 BGP_DEFAULT_PORT = 179
 SHARE = "Share"
@@ -18,7 +25,7 @@ CLIENT_PROVIDER = "Client-Provider"
 class AS(Overlay):
     """An overlay class that groups routers by AS number"""
 
-    def __init__(self, asn, routers=(), **props):
+    def __init__(self, asn: int, routers=(), **props):
         """:param asn: The number for this AS
         :param routers: an initial set of routers to add to this AS
         :param props: key-values to set on all routers of this AS"""
@@ -26,11 +33,11 @@ class AS(Overlay):
         self.asn = asn
 
     @property
-    def asn(self):
+    def asn(self) -> int:
         return self.nodes_properties['asn']
 
     @asn.setter
-    def asn(self, x):
+    def asn(self, x: int):
         x = int(x)
         self.nodes_properties['asn'] = x
 
@@ -52,7 +59,7 @@ class iBGPFullMesh(AS):
         return '<iBGPMesh %s>' % self.asn
 
 
-def bgp_fullmesh(topo, routers):
+def bgp_fullmesh(topo, routers: Sequence[str]):
     """Establish a full-mesh set of BGP peerings between routers
 
     :param topo: The current topology
@@ -64,13 +71,14 @@ def bgp_fullmesh(topo, routers):
         _set_peering(peering)
 
 
-def bgp_peering(topo, a, b):
+def bgp_peering(topo: 'IPTopo', a: str, b: str):
     """Register a BGP peering between two nodes"""
     topo.getNodeInfo(a, 'bgp_peers', list).append(b)
     topo.getNodeInfo(b, 'bgp_peers', list).append(a)
 
 
-def ebgp_session(topo, a, b, link_type=None):
+def ebgp_session(topo: 'IPTopo', a: 'RouterDescription', b: 'RouterDescription',
+                 link_type: Optional[str] = None):
     """Register an eBGP peering between two nodes, and disable IGP adjacencies
     between them.
 
@@ -135,11 +143,13 @@ def ebgp_session(topo, a, b, link_type=None):
 
 class BGPConfig:
 
-    def __init__(self, topo, router):
+    def __init__(self, topo: 'IPTopo', router: 'RouterDescription'):
         self.topo = topo
         self.router = router
 
-    def set_local_pref(self, local_pref, from_peer, matching=()):
+    def set_local_pref(self, local_pref: int, from_peer: str,
+                       matching: Sequence[Union[AccessList, CommunityList]] =
+                       ()) -> 'BGPConfig':
         """Set local pref on a peering with 'from_peer' on routes
          matching all of the access and community lists in 'matching'
 
@@ -154,7 +164,9 @@ class BGPConfig:
                             matching=matching, direction='in')
         return self
 
-    def set_med(self, med, to_peer, matching=()):
+    def set_med(self, med: int, to_peer: str,
+                matching: Sequence[Union[AccessList, CommunityList]] = ()) \
+            -> 'BGPConfig':
         """Set MED on a peering with 'to_peer' on routes
          matching all of the access and community lists in 'matching'
 
@@ -168,8 +180,11 @@ class BGPConfig:
                             matching=matching, direction='out')
         return self
 
-    def set_community(self, community, from_peer=None, to_peer=None,
-                      matching=()):
+    def set_community(self, community: Union[str, int],
+                      from_peer: Optional[str] = None,
+                      to_peer: Optional[str] = None,
+                      matching: Sequence[Union[AccessList, CommunityList]] =
+                      ()) -> 'BGPConfig':
         """Set community on a routes received from 'from_peer'
          and routes sent to 'to_peer' on routes matching
          all of the access and community lists in 'matching'
@@ -193,8 +208,10 @@ class BGPConfig:
                                 matching=matching, direction='in')
         return self
 
-    def filter(self, name=None, policy=DENY, from_peer=None, to_peer=None,
-               matching=(), order=10):
+    def filter(self, name: Optional[str] = None, policy=DENY,
+               from_peer: Optional[str] = None, to_peer: Optional[str] = None,
+               matching: Sequence[Union[AccessList, CommunityList]] = (),
+               order=10) -> 'BGPConfig':
         """Either accept or deny all routes received from 'from_peer'
          and routes sent to 'to_peer' matching
          all of the access and community lists in 'matching'
@@ -230,8 +247,10 @@ class BGPConfig:
             })
         return self
 
-    def deny(self, name=None, from_peer=None, to_peer=None, matching=(),
-             order=10):
+    def deny(self, name: Optional[str] = None, from_peer: Optional[str] = None,
+             to_peer: Optional[str] = None,
+             matching: Sequence[Union[AccessList, CommunityList]] = (),
+             order=10) -> 'BGPConfig':
         """Deny all routes received from 'from_peer'
          and routes sent to 'to_peer' matching
          all of the access and community lists in 'matching'
@@ -248,8 +267,10 @@ class BGPConfig:
         return self.filter(name, policy=DENY, from_peer=from_peer,
                            to_peer=to_peer, matching=matching, order=order)
 
-    def permit(self, name=None, from_peer=None, to_peer=None, matching=(),
-               order=10):
+    def permit(self, name: Optional[str] = None,
+               from_peer: Optional[str] = None, to_peer: Optional[str] = None,
+               matching: Sequence[Union[AccessList, CommunityList]] = (),
+               order=10) -> 'BGPConfig':
         """Accept all routes received from 'from_peer'
          and routes sent to 'to_peer' matching
          all of the access and community lists in 'matching'
@@ -266,7 +287,9 @@ class BGPConfig:
         return self.filter(name, policy=PERMIT, from_peer=from_peer,
                            to_peer=to_peer, matching=matching, order=order)
 
-    def filters_to_match_cond(self, filter_list):
+    def filters_to_match_cond(self,
+                              filter_list: Sequence[Union[AccessList,
+                                                          CommunityList]]):
         match_cond = []
         access_lists = self.topo.getNodeInfo(self.router, 'bgp_access_lists',
                                              list)
@@ -287,7 +310,9 @@ class BGPConfig:
                 raise Exception("Filter not yet implemented")
         return match_cond
 
-    def add_set_action(self, peer, set_action, matching, direction):
+    def add_set_action(self, peer: str, set_action: RouteMapSetAction,
+                       matching: Sequence[Union[AccessList, CommunityList]],
+                       direction: str) -> 'BGPConfig':
         """Add a 'RouteMapSetAction' to a BGP peering between two nodes
 
         :param peer: The peer to which the route map is applied
@@ -304,7 +329,7 @@ class BGPConfig:
         return self
 
 
-def set_rr(topo, rr, peers=()):
+def set_rr(topo: 'IPTopo', rr: str, peers: Sequence[str] = ()):
     """
     Set rr as route reflector for all router r
 
@@ -347,7 +372,7 @@ class BGP(QuaggaDaemon):
 
         return cfg
 
-    def build_community_list(self):
+    def build_community_list(self) -> List[CommunityList]:
         """
         Build and return a list of community_filter
         """
@@ -362,10 +387,10 @@ class BGP(QuaggaDaemon):
                                    action=node_cl.action)
                 community_lists.append(cl)
                 if isinstance(node_cl.community, int):
-                    cl.community = '%s:%d' % (self._node.asn, cl.community)
+                    cl.community = '%s:%d' % (self._node.asn, node_cl.community)
         return community_lists
 
-    def build_access_list(self):
+    def build_access_list(self) -> List[AccessList]:
         """
         Build and return a list of access_filter
         :return:
@@ -378,12 +403,12 @@ class BGP(QuaggaDaemon):
                                                entries=acl_entries.entries))
         return access_lists
 
-    def build_route_map(self, neighbors):
+    def build_route_map(self, neighbors: Sequence['Peer']) -> List[RouteMap]:
         """
         Build and return a list of route map for the current node
         """
         node_route_maps = self._node.get('bgp_route_maps')
-        route_maps = []
+        route_maps = []  # type: List[RouteMap]
         if node_route_maps is not None:
             for kwargs in node_route_maps:
                 remote_peer = kwargs.pop('peer')
@@ -412,7 +437,7 @@ class BGP(QuaggaDaemon):
         defaults.address_families = [AF_INET(), AF_INET6()]
         super().set_defaults(defaults)
 
-    def _build_neighbors(self):
+    def _build_neighbors(self) -> List['Peer']:
         """Compute the set of BGP peers for this BGP router
         :return: set of neighbors"""
         neighbors = []
@@ -424,7 +449,8 @@ class BGP(QuaggaDaemon):
         return neighbors
 
     @staticmethod
-    def _address_families(af, nei):
+    def _address_families(af: List['AddressFamily'], nei: List['Peer']) \
+            -> List['AddressFamily']:
         """Complete the address families: add extra networks, or activate
         neighbors. The default is to activate all given neighbors"""
         for a in af:
@@ -432,18 +458,19 @@ class BGP(QuaggaDaemon):
         return af
 
     @classmethod
-    def get_config(cls, topo, router, **kwargs):
-        return BGPConfig(topo=topo, router=router)
+    def get_config(cls, topo: 'IPTopo', node: 'RouterDescription', **kwargs):
+        return BGPConfig(topo=topo, router=node)
 
 
 class AddressFamily:
     """An address family that is exchanged through BGP"""
 
-    def __init__(self, af_name, redistribute=(), networks=()):
+    def __init__(self, af_name: str, redistribute: Sequence[str] = (),
+                 networks: Sequence[Union[str, IPv4Network, IPv6Network]] = ()):
         self.name = af_name
         self.networks = [ip_network(str(n)) for n in networks]
         self.redistribute = redistribute
-        self.neighbors = []
+        self.neighbors = []  # type: List[Peer]
 
 
 def AF_INET(*args, **kwargs):
@@ -458,11 +485,11 @@ def AF_INET6(*args, **kwargs):
 
 class Peer:
     """A BGP peer"""
-    def __init__(self, base, node, v6=False):
+    def __init__(self, base: 'Router', node: str, v6=False):
         """:param base: The base router that has this peer
         :param node: The actual peer"""
         self.peer, other = self._find_peer_address(base, node, v6=v6)
-        if not self.peer:
+        if not self.peer or not other:
             return
         self.node = node
         self.asn = other.asn
@@ -479,10 +506,11 @@ class Peer:
         self.description = '%s (%sBGP)' % (node, 'e' if ebgp else 'i')
 
     @staticmethod
-    def _find_peer_address(base, peer, v6=False):
+    def _find_peer_address(base: 'Router', peer: str, v6=False) \
+            -> Tuple[Optional[str], Optional['Router']]:
         """Return the IP address that base should try to contact to establish
         a peering"""
-        visited = set()
+        visited = set()  # type: Set[IPIntf]
         to_visit = {i.name: i for i in realIntfList(base)}
         prio_queue = [(0, i) for i in to_visit.keys()]
         heapq.heapify(prio_queue)

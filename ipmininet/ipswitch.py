@@ -1,14 +1,17 @@
 """This modules defines the IPSwitch class allowing to better support STP
    and to create hubs"""
+from typing import Optional
 
 from mininet.nodelib import LinuxBridge
 from ipmininet.utils import require_cmd
 
 
 class IPSwitch(LinuxBridge):
-    "Linux Bridge (with optional spanning tree) extended to include the hubs"
+    """Linux Bridge (with optional spanning tree) extended to include
+       the hubs"""
 
-    def __init__(self, name, stp=True, hub=False, prio=None, **kwargs):
+    def __init__(self, name: str, stp=True, hub=False,
+                 prio: Optional[int] = None, **kwargs):
         """:param name: the name of the node
            :param stp: whether to use spanning tree protocol
            :param hub: whether this switch behaves as a hub (this disable stp)
