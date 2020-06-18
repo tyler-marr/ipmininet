@@ -80,7 +80,7 @@ class Distribution:
 
     def pip_install(self, *packages: str, **kwargs):
         if find_executable(self.PIP_CMD) is not None:
-            sh(self.PIP_CMD + " -q install " + self.pip_args
+            sh(self.PIP_CMD + " -q install " + self.pip_args + " "
                + " ".join(packages), **kwargs)
 
     def require_pip(self):
