@@ -165,16 +165,16 @@ class NodeConfig:
     def build_host_file(self, filename: str):
         # Copy the base file
         lines = []
-        with open('/etc/hosts', 'r') as fileobj:
+        with open("/etc/hosts", "rb") as fileobj:
             lines.extend(fileobj.readlines())
 
-        with open(filename, "w") as fileobj:
+        with open(filename, "wb") as fileobj:
             for node_name, ips in self._node.network_ips().items():
                 for ip in ips:
                     fileobj.write("{ip}\t{name}\n"
-                                  .format(ip=ip, name=node_name))
-            fileobj.write("\n")
-            fileobj.write("".join(lines))
+                                  .format(ip=ip, name=node_name).encode())
+            fileobj.write(b"\n")
+            fileobj.write(b"".join(lines))
 
 
 class RouterConfig(NodeConfig):
