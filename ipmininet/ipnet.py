@@ -277,7 +277,8 @@ class IPNet(Mininet):
             if not domain.use_ip_version(4):
                 continue
             for intf in domain:
-                if len(list(intf.ips())) == 0:
+                if len(list(intf.ips())) == 0 \
+                        and intf.node.use_v4:
                     ips = tuple(domain.next_ipv4()
                                 for _ in range(intf.interface_width[0]))
                     intf.setIP(ips)
@@ -298,7 +299,8 @@ class IPNet(Mininet):
             if not domain.use_ip_version(6):
                 continue
             for intf in domain:
-                if len(list(intf.ip6s(exclude_lls=True))) == 0:
+                if len(list(intf.ip6s(exclude_lls=True))) == 0 \
+                        and intf.node.use_v6:
                     ips = tuple(domain.next_ipv6()
                                 for _ in range(intf.interface_width[1]))
                     intf.setIP6(ips)
@@ -639,14 +641,20 @@ class BroadcastDomain:
     def max_v4prefixlen(self) -> int:
         """Return the maximal IPv4 prefix suitable for this domain"""
         # IPv4 reserves 2 addresses for broadcast/subnet addresses
-        return 32 - math.ceil(math.log(2 + self.len_v4(), 2))
+        return 32 \
+               - math.ceil(math.log(2 + sum(map(lambda x: x.interface_width[1]
+                                                if x.node.use_v4 else 0,
+                                                self.interfaces)), 2))
 
     @property
     def max_v6prefixlen(self) -> int:
         """Return the maximal IPv6 prefix suitable for this domain"""
         # IPv6 should use whole subnet space for addressing
         # But see FIXME in constructor
-        return 128 - math.ceil(math.log(1 + self.len_v6(), 2))
+        return 128 \
+               - math.ceil(math.log(1 + sum(map(lambda x: x.interface_width[1]
+                                                if x.node.use_v6 else 0,
+                                                self.interfaces)), 2))
 
     @property
     def routers(self) -> List[IPIntf]:
@@ -682,17 +690,14 @@ class BroadcastDomain:
             raise ValueError('No more available IPv6 address')
 
     def use_ip_version(self, ip_version) -> bool:
-        """ Checks whether it makes sense to allocate a subnet
-        of an IP version to this domain. If there is no other node
-        allowing it, there is no point in allocating an address
-        to a single host.
+        """ Checks whether there are nodes using this IP version
 
         :param ip_version: either 4 or 6
         :return: True iif there is more than one interface on the domain
                  enabling this IP version
         """
-        for i in self.routers:
+        for i in self.interfaces:
             if i.node.use_v4 and ip_version == 4 \
                     or i.node.use_v6 and ip_version == 6:
                 return True
-        return len(self.interfaces) - len(self.routers) > 1
+        return False
