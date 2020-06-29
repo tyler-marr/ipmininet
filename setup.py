@@ -15,7 +15,7 @@ VERSION = '0.8'
 
 modname = distname = 'ipmininet'
 
-MININET_VERSION = "2.3.0d6"
+MININET_VERSION = "bfc42f6d028a9d5ac1bc121090ca4b3041829f86"
 install_requires = [
     'setuptools',
     'mako>=1.0,<1.1',
