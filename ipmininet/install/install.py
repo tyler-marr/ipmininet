@@ -8,7 +8,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils import supported_distributions, identify_distribution, sh
 
-MininetVersion = "2.3.0d6"
+MininetVersion = "bfc42f6d028a9d5ac1bc121090ca4b3041829f86"
 FRRoutingVersion = "7.1"
 OpenrRelease = "rc-20190419-11514"
 
