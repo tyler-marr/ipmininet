@@ -37,18 +37,52 @@ def check_srv6_compatibility() -> bool:
         return False
 
 
+def srv6_segment_space(node: Optional[Union[str, IPNode]] = None,
+                       intf: Union[str, IPIntf] = "lo") -> List[IPv6Network]:
+    """
+    :param node: The IPNode object representing the node
+    :param intf: Either the interface name (in which case the node parameter has
+                 to be filled) or the IPIntf object representing the interface
+    :return: The segment space of the interface of the node
+    """
+    if isinstance(intf, str):
+        if not isinstance(node, IPNode):
+            raise ValueError("Cannot retrieve an IPIntf from name without "
+                             "passing its node as parameter")
+        intf = node.intf(intf)
+
+    return [ip.network for ip in intf.ip6s(exclude_lls=True, exclude_lbs=True)]
+
+
 class LocalSIDTable:
     """A class representing a LocalSID routing table"""
 
     def __init__(self, node: IPNode,
-                 matching: Iterable[Union[str, IPv6Network]] = ("::/0",)):
+                 matching: Iterable[Union[str, IPv6Network, IPNode, IPIntf]]
+                 = ("::/0",)):
         """
         :param node: The node on which the table is added
-        :param matching: The list of prefixes that are
-                         whose processing is delegated to the table
+        :param matching: The list of destinations
+                         whose processing is delegated to the table;
+                         destinations can be raw prefixes, interfaces
+                         (implying all networks on the interface) or nodes
+                         (implying all networks on its loopback interface)
         """
         self.node = node
-        self.prefixes = [IPv6Network(str(prefix)) for prefix in matching]
+        self.prefixes = []
+        for destination in matching:
+            if isinstance(destination, str):
+                self.prefixes.append(IPv6Network(destination))
+            elif isinstance(destination, IPv6Network):
+                self.prefixes.append(destination)
+            elif isinstance(destination, IPNode):
+                self.prefixes.extend(srv6_segment_space(node=destination))
+            elif isinstance(destination, IPIntf):
+                self.prefixes.extend(srv6_segment_space(intf=destination))
+            else:
+                raise ValueError("The LocalSIDTable cannot be created because "
+                                 "the destination {} cannot be matched"
+                                 .format(destination))
 
         # Find Free table number
         tables = []

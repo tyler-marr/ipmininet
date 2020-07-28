@@ -66,9 +66,8 @@ class SRv6Topo(IPTopo):
 
         # Every packet on r3 destined to 2042:3:3::/64 except for 2042:3:3::1
         # will trigger a lookup to the LocalSIDTable
-        r3_segment_space = next(net["r3"].intf("lo").ip6s()).network
         self.tables["r3"] = LocalSIDTable(net["r3"],
-                                          matching=[r3_segment_space])
+                                          matching=[net["r3"].intf("lo")])
 
         # Packets with "2042:3:3::34" as active segment on r3 will be sent
         # to r3-r4 link
