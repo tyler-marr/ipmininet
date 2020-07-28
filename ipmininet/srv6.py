@@ -37,36 +37,6 @@ def check_srv6_compatibility() -> bool:
         return False
 
 
-def nexthops_to_ips(nexthops: List[Union[str, IPNode, IPIntf, IPv6Address,
-                                         IPv4Address]],
-                    v6=True) -> List[str]:
-    """
-    :param nexthops: Each element of the list can either be an IPv6 address,
-                     an IPIntf or an IPNode. In both later cases,
-                     the default IPv6 address is selected.
-    :param v6: Whether we return IPv6 or IPv4 addresses
-    :return: a list of addresses
-    """
-    s = []
-    for nh in nexthops:
-        try:
-            IPv6Address(str(nh)) if v6 else IPv4Address(str(nh))
-            # This is an IPv6 or IPv4 address
-            s.append(str(nh))
-        except (AddressValueError, NetmaskValueError):
-            ip = None
-            if isinstance(nh, IPNode):
-                ip = address_pair(nh, use_v4=not v6)[1 if v6 else 0]
-            elif isinstance(nh, IPIntf):
-                ip = nh.ip6 if v6 else nh.ip
-            if ip is None:
-                raise ValueError("Cannot find for the nexthop %s"
-                                 " a global IPv%d address\n"
-                                 % (nh, 6 if v6 else 4))
-            s.append(ip)
-    return s
-
-
 class LocalSIDTable:
     """A class representing a LocalSID routing table"""
 
@@ -127,23 +97,25 @@ class LocalSIDTable:
 class SRv6Route(metaclass=abc.ABCMeta):
     """The SRv6Route abstract class, which enables to create an SRv6 route"""
 
-    def __init__(self, net: IPNet, node: IPNode,
+    def __init__(self, net: IPNet, node: Union[IPNode, str],
                  to: Union[str, IPv6Network, IPNode, IPIntf] = "::/0", cost=1,
                  table: Optional[LocalSIDTable] = None):
         """
         :param net: The IPNet instance
         :param node: The IPNode object on which the route has to be installed
-        :param to: Either directly the prefix, an IPNode or an IPIntf object
-                   so that it matches all its addresses.
+                     or the name of this node
+        :param to: Either directly the prefix, an IPNode, a name of an IPNode
+                   or an IPIntf object so that it matches all its addresses.
         :param cost: The cost of using the route: routes with lower cost is
                      preferred if the destination prefix is the same.
         :param table: Install the route into the specified table instead of
                       the main one.
         """
+        self.net = net
         self.table = table
         self.destination = to
         self.cost = cost
-        self.source = node
+        self.source = node if not isinstance(node, str) else net[node]
         itfs = realIntfList(self.source)
         if len(itfs) == 0:
             raise ValueError("Cannot install SRv6Route %s without"
@@ -175,6 +147,12 @@ class SRv6Route(metaclass=abc.ABCMeta):
             # This is an IPv6 address
             prefixes.append(str(self.destination))
         except (AddressValueError, NetmaskValueError):
+            if isinstance(self.destination, str):
+                try:
+                    self.destination = self.net[self.destination]
+                except KeyError:
+                    pass
+
             if isinstance(self.destination, IPNode):
                 for itf in self.destination.intfList():
                     for ip6 in itf.ip6s(exclude_lls=True, exclude_lbs=True):
@@ -189,6 +167,42 @@ class SRv6Route(metaclass=abc.ABCMeta):
                           "because the destination", self.destination,
                           "does not have a global IPv6 address\n")
         return prefixes
+
+    def nexthops_to_ips(self,
+                        nexthops: List[Union[str, IPNode, IPIntf, IPv6Address,
+                                             IPv4Address]],
+                        v6=True) -> List[str]:
+        """
+        :param nexthops: Each element of the list can either be an IP or IPv6
+                         address, an IPIntf, an IPNode or the name of an IPNode.
+                         In the last 3 cases, the default IPv6 address is
+                         selected.
+        :param v6: Whether we return IPv6 or IPv4 addresses
+        :return: a list of addresses
+        """
+        s = []
+        for nh in nexthops:
+            try:
+                IPv6Address(str(nh)) if v6 else IPv4Address(str(nh))
+                # This is an IPv6 or IPv4 address
+                s.append(str(nh))
+            except (AddressValueError, NetmaskValueError):
+                if isinstance(nh, str):
+                    try:
+                        nh = self.net[nh]
+                    except KeyError:
+                        pass
+                ip = None
+                if isinstance(nh, IPNode):
+                    ip = address_pair(nh, use_v4=not v6)[1 if v6 else 0]
+                elif isinstance(nh, IPIntf):
+                    ip = nh.ip6 if v6 else nh.ip
+                if ip is None:
+                    raise ValueError("Cannot find for the nexthop %s"
+                                     " a global IPv%d address\n"
+                                     % (nh, 6 if v6 else 4))
+                s.append(ip)
+        return s
 
     @abc.abstractmethod
     def build_commands(self) -> List[str]:
@@ -230,15 +244,16 @@ class SRv6Encap(SRv6Route):
     ENCAP = "encap"
     INLINE = "inline"
 
-    def __init__(self, net: IPNet, node: IPNode,
+    def __init__(self, net: IPNet, node: Union[IPNode, str],
                  to: Union[str, IPv6Network, IPNode, IPIntf] = "::/0",
                  through: List[Union[str, IPv6Address, IPNode, IPIntf]] = (),
                  mode=ENCAP, cost=1):
         """
         :param net: The IPNet instance
         :param node: The IPNode object on which the route has to be installed
-        :param to: Either directly the prefix, an IPNode or an IPIntf object
-                   so that it matches all its addresses.
+                     or the name of this node
+        :param to: Either directly the prefix, an IPNode, a name of an IPNode
+                   or an IPIntf object so that it matches all its addresses.
         :param through: A list of nexthops to set in the IPv6 Segment Routing
                         Header. Each element of the list can either be an
                         IPv6 address, an IPIntf or an IPNode. In both later
@@ -271,7 +286,7 @@ class SRv6Encap(SRv6Route):
             return cmds
 
         # Get segments
-        nexthops = nexthops_to_ips(self.nexthops)
+        nexthops = self.nexthops_to_ips(self.nexthops)
         if len(nexthops) == 0:
             return cmds
 
@@ -348,7 +363,7 @@ class SRv6EndXFunction(SRv6EndFunction):
                         In both later cases, the default IPv6 address is
                         selected.
         """
-        self.nexthop = nexthops_to_ips([nexthop])[0]
+        self.nexthop = self.nexthops_to_ips([nexthop])[0]
         super().__init__(*args, **kwargs)
 
     @property
@@ -431,7 +446,7 @@ class SRv6EndDX4Function(SRv6EndFunction):
                         In both later cases, the default IPv4 address is
                         selected.
         """
-        self.nexthop = nexthops_to_ips([nexthop], v6=False)[0]
+        self.nexthop = self.nexthops_to_ips([nexthop], v6=False)[0]
         super().__init__(*args, **kwargs)
 
     @property
@@ -467,7 +482,7 @@ class SRv6EndB6Function(SRv6EndFunction):
         if len(segments) == 0:
             raise ValueError("It does not make sense to use Segment Routing"
                              " without any segment.")
-        self.segments = nexthops_to_ips(segments)
+        self.segments = self.nexthops_to_ips(segments)
         super().__init__(*args, **kwargs)
 
     @property

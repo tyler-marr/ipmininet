@@ -93,10 +93,11 @@ encapsulate SRH in your packets based on the destination.
             # triggers it
 
             # This adds an SRH encapsulation route on h1 for packets to h2
-            SRv6Encap(net=net, node=net["h1"], to=net["h2"],
+            SRv6Encap(net=net, node="h1", to="h2",
                       # You can specify the intermediate point with any
-                      # of the host, interface or the address itself
-                      through=[net["r1"], net["r1"].intf("lo"),
+                      # of the host, its name, an interface or the address
+                      # itself
+                      through=[net["r1"], "r1", net["r1"].intf("lo"),
                                net["r1"].intf("lo").ip6],
                       # Either insertion (INLINE) or encapsulation (ENCAP)
                       mode=SRv6Encap.INLINE)
@@ -176,10 +177,11 @@ classes to insert the routes in this table instead of the default one.
             # triggers it
 
             # This adds an SRH encapsulation route on h1 for packets to h2
-            SRv6Encap(net=net, node=net["h1"], to=net["h2"],
+            SRv6Encap(net=net, node="h1", to="h2",
                       # You can specify the intermediate point with any
-                      # of the host, interface or the address itself
-                      through=[net["r1"], net["r1"].intf("lo"),
+                      # of the host, its name, an interface or the address
+                      # itself
+                      through=[net["r1"], "r1", net["r1"].intf("lo"),
                                net["r1"].intf("lo").ip6, "2042:2:2::200"],
                       # Either insertion (INLINE) or encapsulation (ENCAP)
                       mode=SRv6Encap.INLINE)
@@ -190,7 +192,7 @@ classes to insert the routes in this table instead of the default one.
 
             # Receiving a packet on r2 with "2042:2:2::200" as active segment
             # will trigger the function 'End' which is regular SRH processing
-            SRv6EndFunction(net=net, node=net["r2"], to="2042:2:2::200",
+            SRv6EndFunction(net=net, node="r2", to="2042:2:2::200",
                             table=sid_table)
 
             super().post_build(net)

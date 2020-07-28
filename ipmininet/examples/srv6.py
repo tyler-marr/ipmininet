@@ -58,11 +58,11 @@ class SRv6Topo(IPTopo):
 
     def post_build(self, net):
         # Adds an inline SRH on packets to h4
-        SRv6Encap(net=net, node=net["h1"], to=net["h4"],
+        SRv6Encap(net=net, node="h1", to="h4",
                   # You can specify the intermediate point with any of the host,
                   # interface or the address itself
-                  through=[net["r6"], net["r5"].intf("lo"), "2042:3:3::34",
-                           net["r4"]], mode=SRv6Encap.INLINE)
+                  through=["r6", net["r5"].intf("lo"), "2042:3:3::34", "r4"],
+                  mode=SRv6Encap.INLINE)
 
         # Every packet on r3 destined to 2042:3:3::/64 except for 2042:3:3::1
         # will trigger a lookup to the LocalSIDTable
@@ -73,7 +73,7 @@ class SRv6Topo(IPTopo):
         # Packets with "2042:3:3::34" as active segment on r3 will be sent
         # to r3-r4 link
         # This rule is added to the LocalSIDTable created above
-        SRv6EndXFunction(net=net, node=net["r3"], to="2042:3:3::34",
+        SRv6EndXFunction(net=net, node="r3", to="2042:3:3::34",
                          nexthop=net["r4"].intf("r4-eth1").ip6,
                          table=self.tables["r3"])
         super().post_build(net)
