@@ -41,6 +41,7 @@ from .bgp_policies_3 import BGPPoliciesTopo3
 from .bgp_policies_adjust import BGPPoliciesAdjustTopo
 from .bgp_policies_5 import BGPPoliciesTopo5
 from .dns_network import DNSNetwork
+from .dns_advanced_network import DNSAdvancedNetwork
 from .srv6 import SRv6Topo
 from .tc_network import TCNet
 from .tc_advanced_network import TCAdvancedNet
@@ -82,6 +83,7 @@ TOPOS = {'simple_ospf_network': SimpleOSPFNet,
          'bgp_policies_adjust': BGPPoliciesAdjustTopo,
          'bgp_policies_5': BGPPoliciesTopo5,
          'dns_network': DNSNetwork,
+         'dns_advanced_network': DNSAdvancedNetwork,
          'ipv6_segment_routing': SRv6Topo,
          'tc_network': TCNet,
          'tc_advanced_network': TCAdvancedNet}

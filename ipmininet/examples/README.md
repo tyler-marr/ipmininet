@@ -37,6 +37,7 @@ The following sections will detail the topologies.
    - [SpanningTreeAdjust](#spanningtreeadjust)
    - [SpanningTreeCost](#spanningtreecost)
    - [DNSNetwork](#dnsnetwork)
+   - [DNSAdvancedNetwork](#dnsadvancednetwork)
    - [IPv6SegmentRouting](#ipv6segmentrouting)
    - [TCNetwork](#tcnetwork)
    - [TCAdvancedNetwork](#tcadvancednetwork)
@@ -429,6 +430,15 @@ master dig @locahost -t AAAA server.mydomain.org
 slave dig @locahost -t NS mydomain.org
 slave dig @locahost -t AAAA server.mydomain.org
 ```
+
+## DNSAdvancedNetwork
+
+_topo name_ : dns_advanced_network
+_args_ : n/a
+
+This network has a full DNS architecture with root servers and zone delegation.
+You can query the full tree with dig as on the
+[DNSNetwork](#dnsnetwork) topology.
 
 ## IPv6SegmentRouting
 
