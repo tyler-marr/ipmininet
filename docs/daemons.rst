@@ -515,6 +515,16 @@ if they fit in its domain name. Otherwise, another zone will be created.
 
             super().build(*args, **kwargs)
 
+By default, subdomains authority is delegated to the direct child zone name
+servers by copying the NS records of the child zone to the parent zone. You can
+remove this behavior, by zone, by setting the parameter ``subdomain_delegation``
+to ``False``. You can also delegate more zones by using the ``delegated_zones``
+parameter.
+
+By default, all DNS servers that are not root DNS servers have hints to the
+root DNS servers (if the root zone is added to the topology). This behavior
+can be disabled by setting the parameter ``hint_root_zone`` of ``Named`` to
+``False``.
 
 RADVD
 -----
