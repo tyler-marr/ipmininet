@@ -106,7 +106,7 @@ class Named(HostDaemon):
         that is added to cfg_zones dictionary.
         """
         # Build PTR records
-        ptr_records = []
+        ptr_records = set()
         for zone in cfg_zones.values():
             for record in zone.soa_record.records:
                 if record.rtype != "A" and record.rtype != "AAAA":
@@ -116,8 +116,8 @@ class Named(HostDaemon):
                     domain_name = record.domain_name
                 else:
                     domain_name = dns_join_name(record.domain_name, zone.name)
-                ptr_records.append(PTRRecord(record.address, domain_name,
-                                             ttl=record.ttl))
+                ptr_records.add(PTRRecord(record.address, domain_name,
+                                          ttl=record.ttl))
 
         existing_records = [record for zone in cfg_zones.values()
                             for record in zone.soa_record.records
@@ -250,6 +250,9 @@ class DNSRecord:
         return self.rtype == other.rtype \
                and self.domain_name == other.domain_name \
                and self.rdata == other.rdata
+
+    def __hash__(self):
+        return hash(self.rtype) + hash(self.domain_name) + hash(self.rdata)
 
 
 class ARecord(DNSRecord):
