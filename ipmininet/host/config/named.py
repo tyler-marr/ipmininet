@@ -69,8 +69,9 @@ class Named(HostDaemon):
 
     def build_zone(self, zone: 'DNSZone') -> ConfigDict:
         master_ips = []
-        for s_name in zone.servers + [zone.dns_master] + zone.dns_slaves:
-            server_itf = find_node(self._node, s_name)
+        for s_name in zone.servers + [zone.dns_master] + zone.dns_slaves + \
+                      zone.delegation_servers:
+            server_itf = find_node(self._node, dns_base_name(s_name))
             if server_itf is None:
                 lg.error("Cannot find the server node {name} of DNS zone"
                          " {zone}. Are you sure that they are connected to "
@@ -96,7 +97,8 @@ class Named(HostDaemon):
                           soa_record=zone.soa_record,
                           records=zone.records,
                           master=self._node.name == zone.dns_master,
-                          master_ips=master_ips)
+                          master_ips=master_ips,
+                          delegation_servers=zone.delegation_servers)
 
     def build_reverse_zone(self, cfg_zones: ConfigDict):
         """
@@ -108,7 +110,8 @@ class Named(HostDaemon):
         ptr_records = set()
         for zone in cfg_zones.values():
             for record in zone.records:
-                if not isinstance(record, ARecord):
+                if not isinstance(record, ARecord) \
+                        or (record.domain_name in zone.delegation_servers):
                     continue
 
                 if record.full_domain_name:
@@ -338,7 +341,9 @@ class DNSZone(Overlay):
                  records: Sequence[DNSRecord] = (), nodes: Sequence[str] = (),
                  refresh_time=DNS_REFRESH, retry_time=DNS_RETRY,
                  expire_time=DNS_EXPIRE, min_ttl=DNS_MIN_TTL,
-                 ns_domain_name: Optional[str] = None):
+                 ns_domain_name: Optional[str] = None,
+                 subdomain_delegation=True,
+                 delegated_zones: Sequence['DNSZone'] = ()):
         """
         :param name: The domain name of the zone
         :param dns_master: The name of the master DNS server
@@ -356,6 +361,10 @@ class DNSZone(Overlay):
         :param ns_domain_name: If it is defined, it is the suffix of the domain
                                of the name servers, otherwise, parameter 'name'
                                is used.
+        :param subdomain_delegation:
+            If set, additional records for subdomain name servers are added
+            to guarantee correct delegation
+        :param delegated_zones: Additional delegated zones
         """
         self.name = name + "." if name[-1:] != "." else name
         self.dns_master = dns_master
@@ -384,6 +393,9 @@ class DNSZone(Overlay):
         for n in self.nodes:
             server_name = dns_join_name(n, self.ns_domain_name)
             self.add_record(NSRecord(self.name, server_name))
+        self.subdomain_delegation = subdomain_delegation
+        self.delegated_zones = list(delegated_zones)
+        self.delegation_servers = []
 
     def check_consistency(self, topo):
         return super().check_consistency(topo) and self.consistent
@@ -405,6 +417,28 @@ class DNSZone(Overlay):
         if not self.consistent:
             return
 
+        for overlay in topo.overlays:
+            if not isinstance(overlay, type(self)) \
+                    or not overlay.consistent or self == overlay:
+                continue
+
+            # Add direct subdomains as delegated zones
+            if self.subdomain_delegation:
+                domain = "." + self.name if self.name != DNS_ROOT else DNS_ROOT
+                match = re.match(r"^\w+" + re.escape(domain) + r"$",
+                                 overlay.name)
+                if match is None:
+                    continue
+
+                self.delegated_zones.append(overlay)
+
+        for zone in self.delegated_zones:
+            # Create NSRecords for the delegated subdomains
+            for ns in [zone.dns_master] + zone.dns_slaves:
+                record = NSRecord(zone.name,
+                                  dns_join_name(ns, zone.ns_domain_name))
+                self.add_record(record)
+                self.delegation_servers.append(record.name_server)
 
         for n in self.nodes:
             topo.nodeInfo(n).setdefault("dns_zones", []).append(self)
