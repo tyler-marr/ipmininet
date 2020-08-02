@@ -179,11 +179,10 @@ class Named(HostDaemon):
         for zone in cfg_zones.values():
             if is_reverse_zone(zone.name):
                 continue
-            for record in zone.soa_record.records:
-                if record.rtype == "NS" \
+            for record in zone.records:
+                if isinstance(record, NSRecord) \
                         and self._node.name in record.name_server:
-                    ns_record = NSRecord(record.domain_name, self._node.name)
-                    ns_record.domain_name = domain_name
+                    ns_record = NSRecord("@", record.name_server)
         if ns_record is None:
             lg.warning("Cannot forge a DNS reverse zone because there is no"
                        " NS Record for this node in regular zones.\n")
