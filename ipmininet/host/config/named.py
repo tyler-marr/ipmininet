@@ -38,6 +38,7 @@ class Named(HostDaemon):
     def __init__(self, node, **kwargs):
         # Check if apparmor is enabled in the distribution
         self.apparmor = has_cmd("aa-exec")
+        self.additional_zone_filenames = []
         super().__init__(node, **kwargs)
 
     @property
@@ -210,19 +211,21 @@ class Named(HostDaemon):
         super().set_defaults(defaults)
 
     def zone_filename(self, domain_name: str) -> str:
-        return self._file(suffix='%s.cfg' % domain_name)
+        return self._file(suffix='%szone.cfg' % domain_name)
 
     @property
     def cfg_filenames(self):
         return super().cfg_filenames + \
                [self.zone_filename(z.name)
-                for z in self._node.get('dns_zones', [])]
+                for z in self._node.get('dns_zones', [])] + \
+               self.additional_zone_filenames
 
     @property
     def template_filenames(self):
         return super().template_filenames + \
                ["%s-zone.mako" % self.NAME
-                for _ in self._node.get('dns_zones', [])]
+                for _ in self._node.get('dns_zones', []) +
+                self.additional_zone_filenames]
 
 
 class DNSRecord:
