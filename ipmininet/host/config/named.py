@@ -365,12 +365,12 @@ class DNSZone(Overlay):
                                of the name servers, otherwise, parameter 'name'
                                is used.
         """
-        self.name = name
+        self.name = name + "." if name[-1:] != "." else name
         self.dns_master = dns_master
         self.dns_slaves = list(dns_slaves)
         self.records = records
         self.servers = list(nodes)
-        self.soa_record = SOARecord(name, refresh_time=refresh_time,
+        self.soa_record = SOARecord(self.name, refresh_time=refresh_time,
                                     retry_time=retry_time,
                                     expire_time=expire_time, min_ttl=min_ttl,
                                     records=records)
@@ -381,11 +381,18 @@ class DNSZone(Overlay):
             if "." in node_name:
                 lg.error("Cannot create zone {name} because the node name"
                          " {node_name} contains a '.'"
-                         .format(name=name, node_name=node_name))
+                         .format(name=self.name, node_name=node_name))
                 self.consistent = False
 
         self.ns_domain_name = ns_domain_name if ns_domain_name is not None \
             else self.name
+        if self.ns_domain_name[-1:] != ".":
+            self.ns_domain_name = self.ns_domain_name + "."
+
+        # Add NS Records (if not already present)
+        for n in self.nodes:
+            server_name = dns_join_name(n, self.ns_domain_name)
+            self.add_record(NSRecord(self.name, server_name))
 
     def check_consistency(self, topo):
         return super().check_consistency(topo) and self.consistent
@@ -395,10 +402,6 @@ class DNSZone(Overlay):
         if not self.consistent:
             return
 
-        # Add NS Records (if not already present)
-        for n in self.nodes:
-            self.soa_record.add_record(NSRecord(self.name,
-                                                n + "." + self.ns_domain_name))
 
         for n in self.nodes:
             topo.nodeInfo(n).setdefault("dns_zones", []).append(self)
