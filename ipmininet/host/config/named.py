@@ -81,21 +81,19 @@ class Named(HostDaemon):
             for itf in realIntfList(server):
                 for ip in itf.ips():
                     if not is_reverse_zone(zone.name):
-                        zone.soa_record.add_record(ARecord(s_name,
-                                                           ip.ip.compressed))
+                        zone.add_record(ARecord(s_name, ip.ip.compressed))
                     if s_name == zone.dns_master:
                         master_ips.append(ip.ip.compressed)
 
                 for ip6 in itf.ip6s(exclude_lls=True):
                     if not is_reverse_zone(zone.name):
-                        zone.soa_record.add_record(
-                            AAAARecord(s_name, ip6.ip.compressed))
+                        zone.add_record(AAAARecord(s_name, ip6.ip.compressed))
                     if s_name == zone.dns_master:
                         master_ips.append(ip6.ip.compressed)
 
-        return ConfigDict(name=zone.soa_record.domain_name,
+        return ConfigDict(name=zone.name,
                           soa_record=zone.soa_record,
-                          records=zone.soa_record.records,
+                          records=zone.records,
                           master=self._node.name == zone.dns_master,
                           master_ips=master_ips)
 
@@ -108,8 +106,8 @@ class Named(HostDaemon):
         # Build PTR records
         ptr_records = set()
         for zone in cfg_zones.values():
-            for record in zone.soa_record.records:
-                if record.rtype != "A" and record.rtype != "AAAA":
+            for record in zone.records:
+                if not isinstance(record, ARecord):
                     continue
 
                 if record.full_domain_name:
@@ -120,8 +118,8 @@ class Named(HostDaemon):
                                           ttl=record.ttl))
 
         existing_records = [record for zone in cfg_zones.values()
-                            for record in zone.soa_record.records
-                            if record.rtype == "PTR"]
+                            for record in zone.records
+                            if isinstance(record, PTRRecord)]
 
         ptr_v6_records = []
         ptr_v4_records = []
@@ -134,7 +132,7 @@ class Named(HostDaemon):
             for zone in cfg_zones.values():
                 if zone.name in record.domain_name \
                         and is_reverse_zone(zone.name):
-                    zone.soa_record.records.append(record)
+                    zone.records.append(record)
                     found = True
                     break
             # The rest needs a new DNS zone
@@ -190,11 +188,11 @@ class Named(HostDaemon):
         records.append(ns_record)
 
         # Build the reverse zone
-        soa_record = SOARecord(domain_name=domain_name, records=records)
+        soa_record = SOARecord(domain_name=domain_name)
 
-        reverse_zone = ConfigDict(name=soa_record.domain_name,
+        reverse_zone = ConfigDict(name=domain_name,
                                   soa_record=soa_record,
-                                  records=soa_record.records,
+                                  records=records,
                                   master=True,
                                   master_ips=[])
         self._node.params.setdefault('dns_zones', []).append(reverse_zone)
@@ -312,12 +310,11 @@ class SOARecord(DNSRecord):
 
     def __init__(self, domain_name, refresh_time=DNS_REFRESH,
                  retry_time=DNS_RETRY, expire_time=DNS_EXPIRE,
-                 min_ttl=DNS_MIN_TTL, records: Sequence[DNSRecord] = ()):
+                 min_ttl=DNS_MIN_TTL):
         super().__init__(rtype="SOA", domain_name=domain_name, ttl=min_ttl)
         self.refresh_time = refresh_time
         self.retry_time = retry_time
         self.expire_time = expire_time
-        self._records = list(records)
 
     @property
     def rdata(self):
@@ -329,14 +326,6 @@ class SOARecord(DNSRecord):
                     refresh=self.refresh_time,
                     retry=self.retry_time, expire=self.expire_time,
                     min_ttl=self.ttl)
-
-    @property
-    def records(self):
-        return self._records
-
-    def add_record(self, record: DNSRecord):
-        if record not in self._records:
-            self._records.append(record)
 
 
 class DNSZone(Overlay):
@@ -368,12 +357,11 @@ class DNSZone(Overlay):
         self.name = name + "." if name[-1:] != "." else name
         self.dns_master = dns_master
         self.dns_slaves = list(dns_slaves)
-        self.records = records
+        self._records = list(records)
         self.servers = list(nodes)
         self.soa_record = SOARecord(self.name, refresh_time=refresh_time,
                                     retry_time=retry_time,
-                                    expire_time=expire_time, min_ttl=min_ttl,
-                                    records=records)
+                                    expire_time=expire_time, min_ttl=min_ttl)
         super().__init__(nodes=[dns_master] + list(dns_slaves))
 
         self.consistent = True
@@ -396,6 +384,18 @@ class DNSZone(Overlay):
 
     def check_consistency(self, topo):
         return super().check_consistency(topo) and self.consistent
+
+    @property
+    def records(self):
+        return self._records
+
+    @property
+    def ns_records(self):
+        return [r for r in self._records if isinstance(r, NSRecord)]
+
+    def add_record(self, record: DNSRecord):
+        if record not in self._records:
+            self._records.append(record)
 
     def apply(self, topo):
         super().apply(topo)
