@@ -1,4 +1,5 @@
 """Base classes to configure a Named daemon"""
+import copy
 import os
 import re
 from ipaddress import IPv4Address, IPv6Address, ip_address
@@ -61,10 +62,20 @@ class Named(HostDaemon):
         cfg.abs_logfile = os.path.abspath(cfg.logfile)
 
         cfg.zones = ConfigDict()
+        root_zone_found = False
         for zone in self._node.get('dns_zones', []):
+            root_zone_found = root_zone_found or zone.name == DNS_ROOT
             cfg.zones[self.zone_filename(zone.name)] = self.build_zone(zone)
 
         self.build_reverse_zone(cfg.zones)
+
+        root = self._node.get('root_zone', None)
+        if self.options.hint_root_zone and not root_zone_found \
+                and root is not None:
+            root_filename = self.zone_filename(root.name)
+            cfg.zones[root_filename] = self.build_zone(root)
+            self.additional_zone_filenames.append(root_filename)
+
         return cfg
 
     def build_zone(self, zone: 'DNSZone') -> ConfigDict:
@@ -208,9 +219,12 @@ class Named(HostDaemon):
                higher than the level specified (=>) lower levels will not be
                logged. These levels are 'critical', 'error', 'warning',
                'notice', 'info', 'debug' and 'dynamic'.
-        :param dns_server_port: The port number of the dns server"""
+        :param dns_server_port: The port number of the dns server
+        :param hint_root_zone: Add hints to root dns servers if this is not
+                               the root server"""
         defaults.log_severity = "warning"
         defaults.dns_server_port = 53
+        defaults.hint_root_zone = True
         super().set_defaults(defaults)
 
     def zone_filename(self, domain_name: str) -> str:
@@ -417,10 +431,15 @@ class DNSZone(Overlay):
         if not self.consistent:
             return
 
+        zones = []
         for overlay in topo.overlays:
             if not isinstance(overlay, type(self)) \
                     or not overlay.consistent or self == overlay:
                 continue
+
+            # Find zones that want to hint root dns name servers
+            if self.name == DNS_ROOT:
+                zones.append(overlay)
 
             # Add direct subdomains as delegated zones
             if self.subdomain_delegation:
@@ -431,6 +450,16 @@ class DNSZone(Overlay):
                     continue
 
                 self.delegated_zones.append(overlay)
+
+        # If this is root zone, add a hint zone for the NS servers
+        if self.name == DNS_ROOT:
+            for zone in zones:
+                for n in zone.nodes:
+                    if "root_zone" not in topo.nodeInfo(n):
+                        hint_root_zone = copy.deepcopy(self)
+                        hint_root_zone.soa_record = None
+                        hint_root_zone._records = hint_root_zone.ns_records
+                        topo.nodeInfo(n)["root_zone"] = hint_root_zone
 
         for zone in self.delegated_zones:
             # Create NSRecords for the delegated subdomains
