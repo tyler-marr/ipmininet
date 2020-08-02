@@ -132,7 +132,8 @@ class Named(HostDaemon):
             # Try to place the rest in existing reverse DNS zones
             found = False
             for zone in cfg_zones.values():
-                if zone.name in record.domain_name:
+                if zone.name in record.domain_name \
+                        and is_reverse_zone(zone.name):
                     zone.soa_record.records.append(record)
                     found = True
                     break
