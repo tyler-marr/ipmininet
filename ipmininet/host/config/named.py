@@ -1,19 +1,34 @@
 """Base classes to configure a Named daemon"""
 import os
-
-from typing import List, Union, Sequence, Optional
+import re
 from ipaddress import IPv4Address, IPv6Address, ip_address
+from typing import List, Union, Sequence, Optional
+
 from mininet.log import lg
 
 from ipmininet.overlay import Overlay
-from ipmininet.utils import realIntfList, find_node, has_cmd
 from ipmininet.router.config.utils import ConfigDict
+from ipmininet.utils import realIntfList, find_node, has_cmd
 from .base import HostDaemon
 
 DNS_REFRESH = 86400
 DNS_RETRY = 7200
 DNS_EXPIRE = 3600000
 DNS_MIN_TTL = 172800
+DNS_ROOT = "."
+
+
+def dns_base_name(full_name: str) -> str:
+    return full_name.split(".")[0]
+
+
+def dns_join_name(base_name: str, dns_zone: str) -> str:
+    return base_name + ("." + dns_zone if dns_zone != DNS_ROOT
+                        else DNS_ROOT)
+
+
+def is_reverse_zone(zone_name: str) -> bool:
+    return re.search(r"\.arpa\.$", zone_name) is not None
 
 
 class Named(HostDaemon):
@@ -65,14 +80,14 @@ class Named(HostDaemon):
             server = server_itf.node
             for itf in realIntfList(server):
                 for ip in itf.ips():
-                    if ".arpa" not in zone.name:  # Not a Reverse zone
+                    if not is_reverse_zone(zone.name):
                         zone.soa_record.add_record(ARecord(s_name,
                                                            ip.ip.compressed))
                     if s_name == zone.dns_master:
                         master_ips.append(ip.ip.compressed)
 
                 for ip6 in itf.ip6s(exclude_lls=True):
-                    if ".arpa" not in zone.name:  # Not a Reverse zone
+                    if not is_reverse_zone(zone.name):
                         zone.soa_record.add_record(
                             AAAARecord(s_name, ip6.ip.compressed))
                     if s_name == zone.dns_master:
@@ -97,8 +112,10 @@ class Named(HostDaemon):
                 if record.rtype != "A" and record.rtype != "AAAA":
                     continue
 
-                domain_name = record.domain_name if record.full_domain_name \
-                    else record.domain_name + "." + zone.name
+                if record.full_domain_name:
+                    domain_name = record.domain_name
+                else:
+                    domain_name = dns_join_name(record.domain_name, zone.name)
                 ptr_records.append(PTRRecord(record.address, domain_name,
                                              ttl=record.ttl))
 
@@ -159,7 +176,7 @@ class Named(HostDaemon):
         # Retrieve the NS Record for the new zone
         ns_record = None
         for zone in cfg_zones.values():
-            if "arpa" in zone.name:
+            if is_reverse_zone(zone.name):
                 continue
             for record in zone.soa_record.records:
                 if record.rtype == "NS" \
@@ -217,7 +234,7 @@ class DNSRecord:
         self.domain_name = domain_name
         self.ttl = ttl
 
-        if self.domain_name[-1] != "." and "." in self.domain_name:
+        if not self.full_domain_name and "." in self.domain_name:
             # Full DNS names should be ended by a dot in the config
             self.domain_name = self.domain_name + "."
 
@@ -227,7 +244,7 @@ class DNSRecord:
 
     @property
     def full_domain_name(self) -> bool:
-        return "." in self.domain_name
+        return self.domain_name[-1:] == "."
 
     def __eq__(self, other):
         return self.rtype == other.rtype \
@@ -278,12 +295,10 @@ class NSRecord(DNSRecord):
     def __init__(self, domain_name, name_server: str, ttl=60):
         super().__init__(rtype="NS", domain_name=domain_name, ttl=ttl)
         self.name_server = name_server
-        if "." not in self.name_server:
-            self.name_server = self.name_server + "." + self.domain_name
 
         if self.name_server[-1] != ".":
             # Full DNS names should be ended by a dot in the config
-            self.name_server = self.name_server + "."
+            self.name_server = dns_join_name(self.name_server, self.domain_name)
 
     @property
     def rdata(self):
@@ -303,10 +318,12 @@ class SOARecord(DNSRecord):
 
     @property
     def rdata(self):
-        return "{domain_name} sysadmin.{domain_name} (\n1 ; serial\n{refresh}" \
+        return "{domain_name} {admin} (\n1 ; serial\n{refresh}" \
                " ; refresh timer\n{retry} ; retry timer\n{expire}" \
                " ; retry timer\n{min_ttl} ; minimum ttl\n)"\
-            .format(domain_name=self.domain_name, refresh=self.refresh_time,
+            .format(domain_name=self.domain_name,
+                    admin=dns_join_name("sysadmin", self.domain_name),
+                    refresh=self.refresh_time,
                     retry=self.retry_time, expire=self.expire_time,
                     min_ttl=self.ttl)
 
