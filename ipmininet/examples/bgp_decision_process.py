@@ -74,6 +74,3 @@ class BGPDecisionProcess(IPTopo):
         ebgp_session(self, as1r1, as2r1)
         ebgp_session(self, as3r1, as2r2)
         super().build(*args, **kwargs)
-
-    def addRouter(self, name, **kwargs):
-        return super().addRouter(name, config=RouterConfig, **kwargs)
