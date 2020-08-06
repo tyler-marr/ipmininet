@@ -66,7 +66,7 @@ constraints on the same interface as delay requirements. Otherwise, the tc-htb
 computations to shape the bandwidth will be messed by the potentially large
 netem queue placed afterwards.
 
-To accurately model delay and bandwidth, we advise you to create two switches
+To accurately model delay and bandwidth, we advise you to create one switch
 between each pair of nodes that you want to link and place delay, loss and
 any other tc-netem requirements on switch interfaces while leaving the
 bandwidth shaping on the original nodes.
@@ -119,20 +119,20 @@ in the following way:
             src_delay = src_delay if src_delay else delay
             dst_delay = dst_delay if dst_delay else delay
 
-            # node1 -> switch1
+            # node1 -> switch
             default_params1 = {"bw": bw}
             default_params1.update(opts.get("params1", {}))
             opts1["params1"] = default_params1
 
-            # node2 -> switch2
+            # node2 -> switch
             default_params2 = {"bw": bw}
             default_params2.update(opts.get("params2", {}))
             opts2["params2"] = default_params2
 
-            # switch1 -> node1
+            # switch -> node1
             opts1["params2"] = {"delay": dst_delay,
                                 "max_queue_size": max_queue_size}
-            # switch2 -> node2
+            # switch -> node2
             opts2["params1"] = {"delay": src_delay,
                                 "max_queue_size": max_queue_size}
 
@@ -146,6 +146,11 @@ in the following way:
 
 Feel free to add other arguments but make sure that tc-netem arguments are
 used at the same place as delay and tc-htb ones at the same place as bandwidth.
+
+Last important note: you should be careful when emulating delays in a VM with
+multiple CPUs. On virtualbox, we observed that netem delays can vary by
+several hundreds of milliseconds. Setting the number of CPUs to 1 fixed the
+issue.
 
 .. doctest related functions
 

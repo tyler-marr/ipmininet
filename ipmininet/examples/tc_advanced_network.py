@@ -48,20 +48,20 @@ class TCAdvancedNet(IPTopo):
         src_delay = src_delay if src_delay else delay
         dst_delay = dst_delay if dst_delay else delay
 
-        # node1 -> switch1
+        # node1 -> switch
         default_params1 = {"bw": bw}
         default_params1.update(opts.get("params1", {}))
         opts1["params1"] = default_params1
 
-        # node2 -> switch2
+        # node2 -> switch
         default_params2 = {"bw": bw}
         default_params2.update(opts.get("params2", {}))
         opts2["params2"] = default_params2
 
-        # switch1 -> node1
+        # switch -> node1
         opts1["params2"] = {"delay": dst_delay,
                             "max_queue_size": max_queue_size}
-        # switch2 -> node2
+        # switch -> node2
         opts2["params1"] = {"delay": src_delay,
                             "max_queue_size": max_queue_size}
 
