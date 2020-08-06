@@ -163,6 +163,10 @@ As for Mininet, IPMininet networks need root access to be executed.
 
     mininet> ...
 
+By default, all the generated configuration files for each daemon
+are removed. You can prevent this behavior by setting ``ipmininet.DEBUG_FLAG``
+to ``True`` before stopping the network.
+
 .. _`Mininet CLI`: http://mininet.org/walkthrough/#part-3-mininet-command-line-interface-cli-commands
 
 .. _getting_started_cleaning:
