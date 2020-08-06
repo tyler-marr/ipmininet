@@ -3,9 +3,6 @@
 This network avoids pitfalls when mixing bandwidth and delay emulation on
 the same interface by creating additional switches on the links. For more
 details, you can refer to the IPMininet documentation.
-
-Note that this topology has to be run in an IPNet object that set its 'intf'
-parameter to the class ipmininet.link.TCIntf or a subclass
 """
 
 from ipmininet.iptopo import IPTopo

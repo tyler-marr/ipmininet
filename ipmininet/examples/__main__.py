@@ -4,7 +4,6 @@ import argparse
 import ipmininet
 from ipmininet.ipnet import IPNet
 from ipmininet.cli import IPCLI
-from ipmininet.link import TCIntf
 
 from .simple_ospf_network import SimpleOSPFNet
 from .simple_ospfv3_network import SimpleOSPFv3Net
@@ -98,9 +97,7 @@ NET_ARGS = {'router_adv_network':  {'use_v4': False,
             'bgp_med':             {'use_v4': False,
                                     'use_v6': True},
             'bgp_rr':              {'use_v4': False,
-                                    'use_v6': True},
-            'tc_network':          {'intf': TCIntf},
-            'tc_advanced_network': {'intf': TCIntf}}
+                                    'use_v6': True}}
 
 
 def parse_args():

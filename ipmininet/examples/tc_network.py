@@ -1,8 +1,4 @@
-"""This network emulates delay and bandwidth constraints on the links.
-
-Note that this topology has to be run in an IPNet object that set its 'intf'
-parameter to the class ipmininet.link.TCIntf or a subclass
-"""
+"""This network emulates delay and bandwidth constraints on the links."""
 
 from ipmininet.iptopo import IPTopo
 

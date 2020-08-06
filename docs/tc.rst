@@ -47,50 +47,6 @@ You can pass parameters to links and interfaces when calling ``addLink()``:
 
             super().build(*args, **kwargs)
 
-However the default class IPIntf does not handle those parameters, you need
-to use the TCIntf class. To do so, you can either use:
-
-- the link parameter 'intf' when adding a link,
-- the interface parameter 'cls' in params1 or params2 when adding a link,
-- or the network parameters 'intf' when creating the IPNet object.
-
-.. testcode:: tc tcintf
-
-    from ipmininet.iptopo import IPTopo
-    from ipmininet.link import TCIntf
-    from ipmininet.ipnet import IPNet
-
-    class MyTopology(IPTopo):
-
-        def build(self, *args, **kwargs):
-            h1 = self.addHost("h1")
-            r1 = self.addRouter("r1")
-            r2 = self.addRouter("r2")
-            h2 = self.addHost("h2")
-
-            # A TCIntf instance will be created for each interface
-            self.addLink(h1, r1, bw=100, intf=TCIntf)
-
-            # Both interfaces will use the default interface class of the
-            # network
-            self.addLink(r1, r2, delay="15ms")
-
-            # The first interface will be a TCIntf instance while the other
-            # one will be an instance of the default interface class of the
-            # network
-            self.addLink(r2, h2, params1={"delay": "2ms", "cls": TCIntf})
-
-            super().build(*args, **kwargs)
-
-    # Set the default interface class to TCIntf
-    # It will be used by all interfaces that did not specify an interface class
-    # with link or interface parameters
-    net = IPNet(topo=MyTopology(), intf=TCIntf)
-    try:
-        net.start()
-    except:
-        net.stop()
-
 
 More accurate performance evaluations
 -------------------------------------
@@ -198,7 +154,7 @@ used at the same place as delay and tc-htb ones at the same place as bandwidth.
     from ipmininet.clean import cleanup
     cleanup(level='warning')
 
-.. testcode:: tc
+.. testcode:: *
     :hide:
 
     try:
@@ -208,11 +164,10 @@ used at the same place as delay and tc-htb ones at the same place as bandwidth.
 
     if MyTopology is not None:
         from ipmininet.ipnet import IPNet
-        from ipmininet.link import TCIntf
-        net = IPNet(topo=MyTopology(), intf=TCIntf)
+        net = IPNet(topo=MyTopology())
         net.start()
 
-.. testcleanup:: tc
+.. testcleanup:: *
 
     try:
         net
