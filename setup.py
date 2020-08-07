@@ -11,7 +11,7 @@ from setuptools import setup, find_packages
 from setuptools.command.develop import develop
 from setuptools.command.install import install
 
-VERSION = '0.8'
+VERSION = '0.9'
 
 modname = distname = 'ipmininet'
 
