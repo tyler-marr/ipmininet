@@ -45,10 +45,6 @@ class SRv6TestTopo(SRv6Topo):
                 # We use the local SID table
                 route_params["table"] = self.tables[r]
             try:
-                route_params["to"] = net[route_params["to"]].intf().ip6
-            except KeyError:  # This is already an IP address
-                pass
-            try:
                 route_class(net=net, node=net[r], **route_params)
             except Exception as e:
                 traceback.print_exc()

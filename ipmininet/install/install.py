@@ -10,7 +10,6 @@ from utils import supported_distributions, identify_distribution, sh
 
 MininetVersion = "bfc42f6d028a9d5ac1bc121090ca4b3041829f86"
 FRRoutingVersion = "7.1"
-OpenrRelease = "rc-20190419-11514"
 
 os.environ["PATH"] = "%s:/sbin:/usr/sbin/:/usr/local/sbin" % os.environ["PATH"]
 
@@ -152,29 +151,23 @@ def install_frrouting(output_dir: str):
         break
 
 
-def install_openr(output_dir: str, openr_release=OpenrRelease,
-                  openr_remote="https://github.com/facebook/openr.git"):
-    dist.install("git")
-    openr_install = os.path.join(output_dir, "openr")
-    openr_build = os.path.join(openr_install, "build")
-    openr_buildscript = os.path.join(openr_build, "build_openr_debian.sh")
-    debian_system_builder = "debian_system_builder/debian_system_builder.py"
-    sh("git clone %s" % openr_remote,
-       cwd=output_dir)
-    sh("git checkout %s" % openr_release,
-       cwd=openr_install)
-    # Generate build script
-    with open(openr_buildscript, "w+") as f:
-        sh("python %s" % debian_system_builder,
-           stdout=f,
-           cwd=openr_build).wait()
-    # Make build script executable
-    os.chmod(openr_buildscript, stat.S_IRWXU)
+def install_openr(output_dir: str, may_fail=False):
+    # It's not possible to get a build script with pinned dependencies from the
+    # OpenR github repository. The checked-in build script has the dependencies
+    # pinned manually. Builds and installs OpenR release rc-20190419-11514.
+    # https://github.com/facebook/openr/releases/tag/rc-20190419-11514
+    script_name = "build_openr-rc-20190419-11514.sh"
+    openr_buildscript = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                     script_name)
     # Execute build script
-    sh(openr_buildscript,
-       cwd=openr_build,
-       shell=True,
-       executable="/bin/bash")
+    p = sh(openr_buildscript,
+           cwd=output_dir,
+           shell=True,
+           executable="/bin/bash",
+           may_fail=may_fail)
+    # We should end here only if may_fail is True
+    if p.returncode != 0:
+        print("WARNING: Ignoring failed OpenR installation.", file=sys.stderr)
 
 
 def update_grub():

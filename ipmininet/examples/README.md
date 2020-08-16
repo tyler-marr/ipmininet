@@ -37,6 +37,7 @@ The following sections will detail the topologies.
    - [SpanningTreeAdjust](#spanningtreeadjust)
    - [SpanningTreeCost](#spanningtreecost)
    - [DNSNetwork](#dnsnetwork)
+   - [DNSAdvancedNetwork](#dnsadvancednetwork)
    - [IPv6SegmentRouting](#ipv6segmentrouting)
    - [TCNetwork](#tcnetwork)
    - [TCAdvancedNetwork](#tcadvancednetwork)
@@ -202,7 +203,7 @@ _args_ : n/a
 This network spawns two routers, which have custom ACLs set such that their
 inbound traffic (the INPUT chains in ip(6)tables):
 
-  - Can only be ICMP traffic over IPv4
+  - Can only be ICMP traffic over IPv4 as well as non-privileged TCP ports
   - Can only be (properly established) TCP over IPv6
 
 You can test this by trying to ping(6) both routers, use nc to (try to)
@@ -429,6 +430,15 @@ master dig @locahost -t AAAA server.mydomain.org
 slave dig @locahost -t NS mydomain.org
 slave dig @locahost -t AAAA server.mydomain.org
 ```
+
+## DNSAdvancedNetwork
+
+_topo name_ : dns_advanced_network
+_args_ : n/a
+
+This network has a full DNS architecture with root servers and zone delegation.
+You can query the full tree with dig as on the
+[DNSNetwork](#dnsnetwork) topology.
 
 ## IPv6SegmentRouting
 

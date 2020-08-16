@@ -1,6 +1,5 @@
 from ipmininet.iptopo import IPTopo
-from ipmininet.router.config import RouterConfig, BGP, ebgp_session
-import ipmininet.router.config.bgp as _bgp
+from ipmininet.router.config import BorderRouterConfig, BGP, ebgp_session
 
 
 class SimpleBGPTopo(IPTopo):
@@ -26,9 +25,7 @@ class SimpleBGPTopo(IPTopo):
         as2r1 = self.bgp('as2r1')
         as2r2 = self.bgp('as2r2')
         as3r1 = self.bgp('as3r1')
-        self.addLink(as1r1, as2r1)
-        self.addLink(as2r1, as2r2)
-        self.addLink(as3r1, as2r2)
+        self.addLinks((as1r1, as2r1), (as2r1, as2r2), (as3r1, as2r2))
         # Set AS-ownerships
         self.addAS(1, (as1r1,))
         self.addiBGPFullMesh(2, (as2r1, as2r2))
@@ -42,8 +39,5 @@ class SimpleBGPTopo(IPTopo):
         super().build(*args, **kwargs)
 
     def bgp(self, name):
-        r = self.addRouter(name, config=RouterConfig)
-        r.addDaemon(BGP, address_families=(
-            _bgp.AF_INET(redistribute=('connected',)),
-            _bgp.AF_INET6(redistribute=('connected',))))
+        r = self.addRouter(name, config=BorderRouterConfig)
         return r

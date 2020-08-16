@@ -44,10 +44,7 @@ class SRv6Topo(IPTopo):
         h6 = self.addHost('h6')
 
         # Links to hosts
-        self.addLink(h1, r1)
-        self.addLink(h3, r3)
-        self.addLink(h4, r4)
-        self.addLink(h6, r6)
+        self.addLinks((h1, r1), (h3, r3), (h4, r4), (h6, r6))
 
         # Links between routers
         self.addLink(r1, r2)
@@ -55,29 +52,27 @@ class SRv6Topo(IPTopo):
         self.addLink(r2, r5, igp_metric=3)
         self.addLink(r2, r3)
         self.addLink(r3, r4, igp_metric=9)
-        self.addLink(r4, r5)
-        self.addLink(r5, r6)
+        self.addLinks((r4, r5), (r5, r6))
 
         super().build(*args, **kwargs)
 
     def post_build(self, net):
         # Adds an inline SRH on packets to h4
-        SRv6Encap(net=net, node=net["h1"], to=net["h4"],
+        SRv6Encap(net=net, node="h1", to="h4",
                   # You can specify the intermediate point with any of the host,
                   # interface or the address itself
-                  through=[net["r6"], net["r5"].intf("lo"), "2042:3:3::34",
-                           net["r4"]], mode=SRv6Encap.INLINE)
+                  through=["r6", net["r5"].intf("lo"), "2042:3:3::34", "r4"],
+                  mode=SRv6Encap.INLINE)
 
         # Every packet on r3 destined to 2042:3:3::/64 except for 2042:3:3::1
         # will trigger a lookup to the LocalSIDTable
-        r3_segment_space = next(net["r3"].intf("lo").ip6s()).network
         self.tables["r3"] = LocalSIDTable(net["r3"],
-                                          matching=[r3_segment_space])
+                                          matching=[net["r3"].intf("lo")])
 
         # Packets with "2042:3:3::34" as active segment on r3 will be sent
         # to r3-r4 link
         # This rule is added to the LocalSIDTable created above
-        SRv6EndXFunction(net=net, node=net["r3"], to="2042:3:3::34",
+        SRv6EndXFunction(net=net, node="r3", to="2042:3:3::34",
                          nexthop=net["r4"].intf("r4-eth1").ip6,
                          table=self.tables["r3"])
         super().post_build(net)

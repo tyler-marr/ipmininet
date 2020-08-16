@@ -1,16 +1,18 @@
 """This module tests the Named daemon"""
-import pytest
 import time
+
+import pytest
 
 from ipmininet.clean import cleanup
 from ipmininet.examples.dns_network import DNSNetwork
 from ipmininet.examples.simple_bgp_network import SimpleBGPTopo
 from ipmininet.examples.static_routing import StaticRoutingNet
-from ipmininet.ipnet import IPNet
-from ipmininet.host.config import Named, ARecord, AAAARecord, NSRecord,\
+from ipmininet.host.config import Named, ARecord, AAAARecord, NSRecord, \
     PTRRecord
+from ipmininet.ipnet import IPNet
 from ipmininet.tests.utils import assert_connectivity, assert_dns_record
 from . import require_root
+from ..examples.dns_advanced_network import DNSAdvancedNetwork
 
 
 class CustomDNSNetwork(DNSNetwork):
@@ -71,7 +73,7 @@ def test_dns_network(named_cfg, zone_args, exp_named_cfg, exp_zone_cfg):
                 assert line + "\n" in cfg,\
                     "Cannot find the line '%s' in the generated " \
                     "main configuration:\n%s" % (line, "".join(cfg))
-        with open("/tmp/named_master2.test.org.cfg") as fileobj:
+        with open("/tmp/named_master2.test.org.zone.cfg") as fileobj:
             cfg = fileobj.readlines()
             for line in exp_zone_cfg:
                 assert line + "\n" in cfg,\
@@ -81,8 +83,8 @@ def test_dns_network(named_cfg, zone_args, exp_named_cfg, exp_zone_cfg):
         # Check port number configuration
         dns_server_port = named_cfg.get("dns_server_port", 53)
         assert_dns_record(net["master2"], "localhost",
-                          ARecord("master2.test.org",
-                                  net["master2"].defaultIntf().ip6),
+                          AAAARecord("master2.test.org",
+                                     net["master2"].defaultIntf().ip6),
                           port=dns_server_port)
 
         # Check connectivity
@@ -112,6 +114,56 @@ def test_dns_network(named_cfg, zone_args, exp_named_cfg, exp_zone_cfg):
             for record in records:
                 assert_dns_record(node, "localhost", record)
             time.sleep(10)
+
+        net.stop()
+    finally:
+        cleanup()
+
+
+@require_root
+def test_zone_delegation():
+    try:
+        net = IPNet(topo=DNSAdvancedNetwork())
+        net.start()
+
+        # Check connectivity
+        assert_connectivity(net, v6=False)
+        assert_connectivity(net, v6=True)
+
+        # Check zone delegation and root hinting
+        root_hints = [NSRecord("", "rootdns"),
+                      ARecord("rootdns", net["rootdns"].defaultIntf().ip),
+                      AAAARecord("rootdns",
+                                 net["rootdns"].defaultIntf().ip6)]
+        mydomain_delegation_records = [
+            NSRecord("mydomain.org", "master"),
+            NSRecord("mydomain.org", "slave"),
+            ARecord("master.mydomain.org", net["master"].defaultIntf().ip),
+            AAAARecord("master.mydomain.org", net["master"].defaultIntf().ip6),
+            ARecord("slave.mydomain.org", net["slave"].defaultIntf().ip),
+            AAAARecord("slave.mydomain.org", net["slave"].defaultIntf().ip6),
+        ]
+        org_delegation_records = [
+            NSRecord("org", "orgdns"),
+            ARecord("orgdns.org", net["orgdns"].defaultIntf().ip),
+            AAAARecord("orgdns.org", net["orgdns"].defaultIntf().ip6),
+        ]
+        records = [([net["master"], net["slave"]],
+                    mydomain_delegation_records
+                    + [ARecord("server.mydomain.org",
+                               net["server"].defaultIntf().ip),
+                       AAAARecord("server.mydomain.org",
+                                  net["server"].defaultIntf().ip6)]
+                    + root_hints),
+                   ([net["orgdns"]],
+                    org_delegation_records + mydomain_delegation_records
+                    + root_hints),
+                   ([net['rootdns']], root_hints + org_delegation_records)]
+        for nodes, zone_records in records:
+            for node in nodes:
+                for record in zone_records:
+                    assert_dns_record(node, "localhost", record)
+                time.sleep(10)
 
         net.stop()
     finally:

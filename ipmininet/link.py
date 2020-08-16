@@ -1,6 +1,6 @@
 """Classes for interfaces and links that are IP-agnostic. This basically
-enhance the Intf class from Mininet, and then define sane defaults for the link
-classes and a new TCIntf base."""
+enhance the TCIntf class from Mininet, and then define sane defaults for the link
+classes."""
 from itertools import chain
 import subprocess
 from ipaddress import ip_interface, IPv4Interface, IPv6Interface
@@ -15,7 +15,7 @@ from mininet.log import lg as log
 from mininet.node import Node
 
 
-class IPIntf(_m.Intf):
+class IPIntf(_m.TCIntf):
     """This class represents a node interface. It is IP-agnostic, as in
     its `addresses` attribute is a dictionary keyed by IP version,
     containing the list of all addresses for a given version"""
@@ -277,9 +277,9 @@ class IPLink(_m.Link):
         super().__init__(node1=node1, node2=node2, intf=intf, *args, **kwargs)
 
 
-# Monkey patch mininit.link ...
-TCIntf = _m.TCIntf
-TCIntf.__bases__ = (IPIntf,)
+# This aliases is there for a historical reason: IPIntf used to extend
+# mininet's Intf and not the mininet's TCIntf
+TCIntf = IPIntf
 
 
 @functools.total_ordering

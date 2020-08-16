@@ -236,7 +236,7 @@ def assert_dns_record(node: IPNode, dns_server_address: str, record: DNSRecord,
     server_cmd = "dig @{address} -p {port} -t {rtype} {domain_name}"\
         .format(address=dns_server_address, rtype=record.rtype,
                 domain_name=record.domain_name, port=port)
-    out_regex = re.compile(r" *{name}[ \t]+{ttl}[ \t]+IN[ \t]+{rtype}[ \t]+"
+    out_regex = re.compile(r" *{name}.?[ \t]+{ttl}[ \t]+IN[ \t]+{rtype}[ \t]+"
                            r"{rdata}"
                            .format(rtype=record.rtype, ttl=record.ttl,
                                    name=record.domain_name,

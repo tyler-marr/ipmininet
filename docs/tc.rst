@@ -47,50 +47,6 @@ You can pass parameters to links and interfaces when calling ``addLink()``:
 
             super().build(*args, **kwargs)
 
-However the default class IPIntf does not handle those parameters, you need
-to use the TCIntf class. To do so, you can either use:
-
-- the link parameter 'intf' when adding a link,
-- the interface parameter 'cls' in params1 or params2 when adding a link,
-- or the network parameters 'intf' when creating the IPNet object.
-
-.. testcode:: tc tcintf
-
-    from ipmininet.iptopo import IPTopo
-    from ipmininet.link import TCIntf
-    from ipmininet.ipnet import IPNet
-
-    class MyTopology(IPTopo):
-
-        def build(self, *args, **kwargs):
-            h1 = self.addHost("h1")
-            r1 = self.addRouter("r1")
-            r2 = self.addRouter("r2")
-            h2 = self.addHost("h2")
-
-            # A TCIntf instance will be created for each interface
-            self.addLink(h1, r1, bw=100, intf=TCIntf)
-
-            # Both interfaces will use the default interface class of the
-            # network
-            self.addLink(r1, r2, delay="15ms")
-
-            # The first interface will be a TCIntf instance while the other
-            # one will be an instance of the default interface class of the
-            # network
-            self.addLink(r2, h2, params1={"delay": "2ms", "cls": TCIntf})
-
-            super().build(*args, **kwargs)
-
-    # Set the default interface class to TCIntf
-    # It will be used by all interfaces that did not specify an interface class
-    # with link or interface parameters
-    net = IPNet(topo=MyTopology(), intf=TCIntf)
-    try:
-        net.start()
-    except:
-        net.stop()
-
 
 More accurate performance evaluations
 -------------------------------------
@@ -110,7 +66,7 @@ constraints on the same interface as delay requirements. Otherwise, the tc-htb
 computations to shape the bandwidth will be messed by the potentially large
 netem queue placed afterwards.
 
-To accurately model delay and bandwidth, we advise you to create two switches
+To accurately model delay and bandwidth, we advise you to create one switch
 between each pair of nodes that you want to link and place delay, loss and
 any other tc-netem requirements on switch interfaces while leaving the
 bandwidth shaping on the original nodes.
@@ -163,20 +119,20 @@ in the following way:
             src_delay = src_delay if src_delay else delay
             dst_delay = dst_delay if dst_delay else delay
 
-            # node1 -> switch1
+            # node1 -> switch
             default_params1 = {"bw": bw}
             default_params1.update(opts.get("params1", {}))
             opts1["params1"] = default_params1
 
-            # node2 -> switch2
+            # node2 -> switch
             default_params2 = {"bw": bw}
             default_params2.update(opts.get("params2", {}))
             opts2["params2"] = default_params2
 
-            # switch1 -> node1
+            # switch -> node1
             opts1["params2"] = {"delay": dst_delay,
                                 "max_queue_size": max_queue_size}
-            # switch2 -> node2
+            # switch -> node2
             opts2["params1"] = {"delay": src_delay,
                                 "max_queue_size": max_queue_size}
 
@@ -191,6 +147,11 @@ in the following way:
 Feel free to add other arguments but make sure that tc-netem arguments are
 used at the same place as delay and tc-htb ones at the same place as bandwidth.
 
+Last important note: you should be careful when emulating delays in a VM with
+multiple CPUs. On virtualbox, we observed that netem delays can vary by
+several hundreds of milliseconds. Setting the number of CPUs to 1 fixed the
+issue.
+
 .. doctest related functions
 
 .. testsetup:: *
@@ -198,7 +159,7 @@ used at the same place as delay and tc-htb ones at the same place as bandwidth.
     from ipmininet.clean import cleanup
     cleanup(level='warning')
 
-.. testcode:: tc
+.. testcode:: *
     :hide:
 
     try:
@@ -208,11 +169,10 @@ used at the same place as delay and tc-htb ones at the same place as bandwidth.
 
     if MyTopology is not None:
         from ipmininet.ipnet import IPNet
-        from ipmininet.link import TCIntf
-        net = IPNet(topo=MyTopology(), intf=TCIntf)
+        net = IPNet(topo=MyTopology())
         net.start()
 
-.. testcleanup:: tc
+.. testcleanup:: *
 
     try:
         net

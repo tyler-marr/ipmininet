@@ -1,8 +1,4 @@
-"""This network emulates delay and bandwidth constraints on the links.
-
-Note that this topology has to be run in an IPNet object that set its 'intf'
-parameter to the class ipmininet.link.TCIntf or a subclass
-"""
+"""This network emulates delay and bandwidth constraints on the links."""
 
 from ipmininet.iptopo import IPTopo
 
@@ -11,8 +7,7 @@ class TCNet(IPTopo):
 
     def build(self, *args, **kw):
         h1 = self.addHost("h1")
-        r1 = self.addRouter("r1")
-        r2 = self.addRouter("r2")
+        r1, r2 = self.addRouters("r1", "r2")
         h2 = self.addHost("h2")
 
         # Set maximum bandwidth on the link to 100 Mbps

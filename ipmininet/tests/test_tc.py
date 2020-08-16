@@ -10,7 +10,6 @@ from ipmininet.clean import cleanup
 from ipmininet.examples.tc_advanced_network import TCAdvancedNet
 from ipmininet.examples.tc_network import TCNet
 from ipmininet.ipnet import IPNet
-from ipmininet.link import TCIntf
 from ipmininet.router import IPNode
 from ipmininet.tests.utils import assert_connectivity
 from . import require_root
@@ -82,7 +81,7 @@ def test_tc_example(topo, delay, bw):
     :param bw: The bandwidth between h1 and h2 in Mbps
     """
     try:
-        net = IPNet(topo=topo(), intf=TCIntf)
+        net = IPNet(topo=topo())
         net.start()
 
         # Check connectivity
